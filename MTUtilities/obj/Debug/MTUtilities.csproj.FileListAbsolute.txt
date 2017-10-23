@@ -1,0 +1,6 @@
+C:\Users\Learning_Owl\source\repos\DBIndexer\MTUtilities\bin\Debug\MTUtilities.dll
+C:\Users\Learning_Owl\source\repos\DBIndexer\MTUtilities\bin\Debug\MTUtilities.pdb
+C:\Users\Learning_Owl\source\repos\DBIndexer\MTUtilities\obj\Debug\MTUtilities.csprojResolveAssemblyReference.cache
+C:\Users\Learning_Owl\source\repos\DBIndexer\MTUtilities\obj\Debug\MTUtilities.csproj.CoreCompileInputs.cache
+C:\Users\Learning_Owl\source\repos\DBIndexer\MTUtilities\obj\Debug\MTUtilities.dll
+C:\Users\Learning_Owl\source\repos\DBIndexer\MTUtilities\obj\Debug\MTUtilities.pdb

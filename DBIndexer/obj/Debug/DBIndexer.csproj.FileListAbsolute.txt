@@ -1,0 +1,9 @@
+C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug\DBIndexer.exe.config
+C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug\DBIndexer.exe
+C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug\DBIndexer.pdb
+C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\obj\Debug\DBIndexer.csprojResolveAssemblyReference.cache
+C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\obj\Debug\DBIndexer.csproj.CoreCompileInputs.cache
+C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\obj\Debug\DBIndexer.exe
+C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\obj\Debug\DBIndexer.pdb
+C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug\MTUtilities.dll
+C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug\MTUtilities.pdb

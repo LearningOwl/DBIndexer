@@ -1,0 +1,106 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Data.SqlClient;
+
+namespace MTUtilities
+{
+    public class Validation
+    {
+        /// <summary>
+        /// Checks the valididty of input parameters by connecting to the database using given credentials and also validating permissions of the user.
+        /// </summary>
+        /// <param name="DBFilepath">the access path of the actual Database file.</param>
+        /// <param name="UserName">login username for the database.</param>
+        /// <param name="Password">password for the the database login.</param>
+        /// <param name="DBName">name of the database to be connected.</param>
+        /// <returns>Boolean</returns>
+        public Boolean CheckInputParameters(string ServerName,string DBFilepath, string UserName, string Password, string DBName)
+        {
+            bool GreenLights = false;
+
+            /*
+             * This implementation is pending
+             * check the connection here and send true if all works fine. Check if all works fine by querying if the database exists. 
+             * check the user permission of the login to be of DBO or Sysadmin levels.
+             * 
+             * The following code does a test run of the access to the database after the above mentioned initial checks are done.
+            */
+
+            /*
+             * The following code does a test run of the access to the database after the above mentioned initial checks are done.
+             */
+            // AttachDbFilename=C:\Program Files\Microsoft SQL Server\MSSQL13.LEARNINGOWL\MSSQL\DATA\AdventureWorks2016_Data.mdf;
+
+            //Connection string example with Windows Authentication mode or Integrated Security mode.
+            string ConnectionString = @"Data Source=DESKTOP-R4E3L7J\LEARNINGOWL;
+                          Initial Catalog=AdventureWorks2016;
+                          Asynchronous Processing=True;
+                          Integrated Security=True;
+                          Connect Timeout=30";
+
+            // Connection string example with UserName and Password:
+            //string ConnectionString = @"Data Source=DESKTOP-R4E3L7J\LEARNINGOWL;
+            //              Initial Catalog=AdventureWorks2016;
+            //              User Id=sa;
+            //              Password=Jayant123*;
+            //              Asynchronous Processing=True;
+            //              Connect Timeout=30";
+
+            string queryString = "SELECT TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = @FilterCondition";  // WHERE ColumnName > @FilterCondition
+            // Create and open the connection in a using block. This
+            // ensures that all resources will be closed and disposed
+            // when the code exits.
+            using (SqlConnection connection =
+                new SqlConnection(ConnectionString))
+            {
+                // Create the Command and Parameter objects.
+                SqlCommand command = new SqlCommand(queryString, connection);
+                string paramValue = "BASE TABLE";  // Just an example. Could be anything.
+                command.Parameters.AddWithValue("@FilterCondition", paramValue);
+
+                // Open the connection in a try/catch block. 
+                // Create and execute the DataReader, writing the result
+                // set to the console window.
+                try
+                {
+                    connection.Open();
+                    SqlDataReader OutputReader = command.ExecuteReader();
+                    while (OutputReader.Read())
+                    {
+                        Console.WriteLine("\t{0}\t{1}\t{2}",
+                            OutputReader[0], OutputReader[1], OutputReader[2]);
+                    }
+                    OutputReader.Close();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+                Console.ReadLine();
+            }
+            
+
+            return GreenLights;
+        }
+
+        /// <summary>
+        /// Sets the static variables with values that we will require througout the analysis such as TableCount, IndexCount, Tablewise Index list, 
+        /// When was the last time Statistics updated, which type of indexes are created, what is the size of the table, size of the index,
+        /// </summary>
+        /// <returns>Boolean</returns>
+        public Boolean RunTableDiagnostic()
+        {
+            bool GreenLights = false;
+
+            /*
+             * check the connection here and send true if all works fine. Check if all works fine by querying if the database exists. 
+             * check the user permission of the login to be of DBO or Sysadmin levels.
+            */
+
+            return GreenLights;
+        }
+    }
+}

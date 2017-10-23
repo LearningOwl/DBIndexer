@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27004.2005
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBIndexer", "DBIndexer\DBIndexer.csproj", "{C90D1700-9B15-41AA-87A3-6CB38A912FD4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MTUtilities", "MTUtilities\MTUtilities.csproj", "{0A686F63-0EBE-4F69-91F9-40D02C9738A7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C90D1700-9B15-41AA-87A3-6CB38A912FD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C90D1700-9B15-41AA-87A3-6CB38A912FD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C90D1700-9B15-41AA-87A3-6CB38A912FD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C90D1700-9B15-41AA-87A3-6CB38A912FD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0A686F63-0EBE-4F69-91F9-40D02C9738A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0A686F63-0EBE-4F69-91F9-40D02C9738A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0A686F63-0EBE-4F69-91F9-40D02C9738A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0A686F63-0EBE-4F69-91F9-40D02C9738A7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {690663F9-3A32-4D47-9373-8B59999B156B}
+	EndGlobalSection
+EndGlobal
