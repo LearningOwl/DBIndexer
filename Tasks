@@ -1,0 +1,31 @@
+<h1>Tasks:</h1>
+
+What are the requirements to suggest an index ?
+Is all that information avialable in the System catalog?
+If not, how do we calculate or get it? how much data is required?
+
+Modules - 
+1- Take input from the user and process it.
+2- Get all the info required from catalog for analysis - October 24 - night Deadline - Jayant/Muthu
+3- Execute the workload on the database irrespective of the data being already present or not.
+	- Create a sample set of queires for the workload. Create a text file with 10 queries. - October 25
+	- Parse a text file of queries and check if all the queries are correct for execution. - Mutthu - October 25
+	- Execute the workload and get running time for each query. - Mutthu- October 25
+	- Which query used which indexes for execution? - Think about this. Jayant - October 26
+4- How to select a subset of indexes to be created which are not already there?
+	- how many columns are in where clause
+	- which of them are most selective
+	- which are mostly used in where clause
+	- which of them dont have an index already ?
+	- how many column could be composited for widest coverage?
+
+5-	- Which were productive and which were counter productive. - Think about this. Jayant - October 28
+6- Create the indexes as per our suggestions
+7- Becnhmark the same workload with our newly created indexes.
+	- record time of each query.
+8- Compare the time difference and bechmark results.
+9- Create the output of suggestions based on these results.
+
+
+
+60% demo presentation to be made ready by November 05.
