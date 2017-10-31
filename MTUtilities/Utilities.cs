@@ -11,6 +11,7 @@ namespace MTUtilities
     public class Utilities
     {
         public static string ExceptionMessage = "";
+        public static Dictionary<string, DBTable> DictParsedTables = new Dictionary<string, DBTable>();
 
         public Boolean PerformChecksUp(string ServerName, string DBFilepath, string UserName, string Password, string DBName)
         {
@@ -19,15 +20,14 @@ namespace MTUtilities
                 Boolean CheckUpSuccess = false;
 
                 Validation validation = new Validation();
-                validation.CheckInputParameters(ServerName, DBFilepath, UserName, Password, DBName);
+                CheckUpSuccess = validation.CheckInputParameters(ServerName, DBFilepath, UserName, Password, DBName);
 
 
                 return CheckUpSuccess;
             }
             catch (Exception Ex)
             {
-                
-                return false;
+                throw Ex;
             }
         }
        

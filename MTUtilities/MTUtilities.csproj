@@ -30,6 +30,10 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="gudusoft.gsqlparser, Version=3.2.2.5, Culture=neutral, PublicKeyToken=2b2fd676a50a6d43, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\gudusoft.gsqlparser.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -41,6 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Column.cs" />
+    <Compile Include="ColumnTableStmt.cs" />
     <Compile Include="DBIndex.cs" />
     <Compile Include="DBTable.cs" />
     <Compile Include="Utilities.cs" />

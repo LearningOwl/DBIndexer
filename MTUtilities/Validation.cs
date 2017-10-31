@@ -70,16 +70,17 @@ namespace MTUtilities
                     SqlDataReader OutputReader = command.ExecuteReader();
                     while (OutputReader.Read())
                     {
-                        Console.WriteLine("\t{0}\t{1}\t{2}",
+                        Console.WriteLine("{0,10}{1,20}{2,20}",
                             OutputReader[0], OutputReader[1], OutputReader[2]);
                     }
                     OutputReader.Close();
+                    GreenLights = true;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine(ex.Message);
+                    throw ex;
                 }
-                Console.ReadLine();
+                
             }
             
 
