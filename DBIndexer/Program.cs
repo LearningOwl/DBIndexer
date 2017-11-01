@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using MTUtilities;
+using System.IO;
 
 namespace DBIndexer
 {
@@ -31,11 +32,19 @@ namespace DBIndexer
                     MTUtilities.Utilities utilities = new Utilities();
                     bool CheckUpSucessful = utilities.PerformChecksUp("", "", "", "", "");
 
-                    if(CheckUpSucessful)
+                    
+                    if (CheckUpSucessful)           // Start parsing and gathering the statistics of the workload:
                     {
-                        // Start parsing and gathering the statistics of the workload:
-                        ColumnTableStmt.ParseWorkload("AdventureWorks2014.sql");
+                        // Get all the SQL files of the workload to be parsed.
+                        string[] filenames = Directory.GetFiles(@"C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug", "Adve*.sql", SearchOption.TopDirectoryOnly);
+
+                        // Parse each file.
+                        foreach (string filename in filenames)
+                        {
+                            ColumnTableStmt.ParseWorkload(filename);
+                        }
                         
+                        // Print output Headers
                         Console.WriteLine("\n{0,10} {1,30} {2,30} {3,20} {4,20} {5,20} {6,20} {7,20} {8,20}", "TableName", "ColumnName", "TotalOccurences", "GroupByClauseOccurences", "WhereClauseOccurences", "HavingClauseOccurences", "ProjectClauseOccurences", "JoinClauseOccurences", "OrderByClauseOccurences");
 
                         // Iterate over each table to print the collected values of tables and columns and their stats.
@@ -48,10 +57,17 @@ namespace DBIndexer
                             }
                         }
 
+                        // Printing Query Text and its occurences as a whole query
+                        SQLQueryStmt.PrintQueryOccurenceStats();
+
+
                         // Execute the workload queries one by one and benchmark them
+                        SQLQueryStmt.BenchmarkWorload("","","","","");
+
+
                         // Then get all the info about tables and columns from the database.
                         // Also get the information about the
-                    
+
                     }
                     else
                     {

@@ -31,10 +31,40 @@ namespace MTUtilities
 
             if (ret == 0)
             {
+
                 for (int i = 0; i < sqlparser.sqlstatements.size(); i++)
                 {
-                    iterateStmt(sqlparser.sqlstatements.get(i));
+                    
+                    ESqlStatementType sqlStatementType = sqlparser.sqlstatements.get(i).sqlstatementtype;       // Get the statementtype of the sql qwuery
+
+                    if (sqlStatementType == ESqlStatementType.sstselect || sqlStatementType == ESqlStatementType.sstupdate) // Take the statement in dictionary only if it is a DML(SELECT/UPDATE) statement
+                    {
+                        // We have taken iterate statement inside if block since parsong for "Use Database", "Go", "Set variable values", etc is not useful for our applicaiton scope.
+                        iterateStmt(sqlparser.sqlstatements.get(i));
+
+
+                        // Create a new query object
+                        SQLQueryStmt query = new SQLQueryStmt();
+
+                        // get the query text of the sql statement from the workload
+                        query.QueryText = sqlparser.sqlstatements.get(i).String;
+
+                        // check if this statement appeared for the first time and add it to the dictionary, else increment the count of already added statement from the dictionary.
+                        if (Utilities.DictWorkloadQueries.Where(qry=>qry.Value.QueryText == query.QueryText).Any())     // If the statement is occuring again.
+                        {
+                            Guid guid = Utilities.DictWorkloadQueries.FirstOrDefault(qry => qry.Value.QueryText == query.QueryText).Key;    // Get the queryId of the SQL already in the Dictionary.
+                            Utilities.DictWorkloadQueries[guid].NumOfOccurences += 1;       // Increment the count of occurence.
+                        }
+                        else        // If the statement occurs for the first time.
+                        {
+                            query.QueryId = Guid.NewGuid();     // New key for query
+                            Utilities.DictWorkloadQueries.Add(query.QueryId, query);       // Add the query to Dictionary.
+                            Utilities.DictWorkloadQueries[query.QueryId].NumOfOccurences = 1;
+                        }
+
+                    }
                 }
+                Console.WriteLine("###################### "+sqlFilename+" Parsing Complete ####################");
             }
             else
             {
@@ -71,7 +101,7 @@ namespace MTUtilities
                         dbtable.DictOccurencesStmts[ESqlStatementType.sstselect.ToString()] += 1;
                     else
                         dbtable.DictOccurencesStmts[ESqlStatementType.sstselect.ToString()] = 1;
-                    
+
                 }
                 else if (stmt.sqlstatementtype == ESqlStatementType.sstupdate || stmt.sqlstatementtype == ESqlStatementType.sstmssqlupdatetext)
                 {
@@ -87,10 +117,10 @@ namespace MTUtilities
                         dbtable.DictOccurencesStmts[ESqlStatementType.sstinsert.ToString()] += 1;
                     else
                         dbtable.DictOccurencesStmts[ESqlStatementType.sstinsert.ToString()] = 1;
-                    
+
                 }
 
-                
+
                 // Loop on each of the columns in each table.
                 for (int j = 0; j < table.LinkedColumns.size(); j++)
                 {
@@ -99,7 +129,7 @@ namespace MTUtilities
                     TObjectName objectName = table.LinkedColumns.getObjectName(j);
 
                     // check if the column is present in the column dictionary already so the same values could be updated further.
-                    if (dictColumns.Where(col=>col.Value.Name == objectName.ColumnNameOnly.ToLower()).Any())
+                    if (dictColumns.Where(col => col.Value.Name == objectName.ColumnNameOnly.ToLower()).Any())
                     {
                         column = dictColumns.FirstOrDefault(col => col.Value.Name == objectName.ColumnNameOnly.ToLower()).Value;
                     }
@@ -182,11 +212,11 @@ namespace MTUtilities
                     dbtable.DictColumns = dictColumns;
 
                     Utilities.DictParsedTables[table_name] = dbtable;
-                    
+
                 }
             }
 
-            
+
             ////Check and return the where clause if any for this statement.
             //if (stmt.WhereClause != null)
             //{

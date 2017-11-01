@@ -48,6 +48,7 @@
     <Compile Include="ColumnTableStmt.cs" />
     <Compile Include="DBIndex.cs" />
     <Compile Include="DBTable.cs" />
+    <Compile Include="SQLQueryStmt.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Validation.cs" />

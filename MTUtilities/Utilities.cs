@@ -12,6 +12,7 @@ namespace MTUtilities
     {
         public static string ExceptionMessage = "";
         public static Dictionary<string, DBTable> DictParsedTables = new Dictionary<string, DBTable>();
+        public static Dictionary<Guid, SQLQueryStmt> DictWorkloadQueries = new Dictionary<Guid, SQLQueryStmt>();
 
         public Boolean PerformChecksUp(string ServerName, string DBFilepath, string UserName, string Password, string DBName)
         {
