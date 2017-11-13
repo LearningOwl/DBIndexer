@@ -46,6 +46,7 @@
   <ItemGroup>
     <Compile Include="Column.cs" />
     <Compile Include="ColumnTableStmt.cs" />
+    <Compile Include="ConsoleTable.cs" />
     <Compile Include="DBIndex.cs" />
     <Compile Include="DBTable.cs" />
     <Compile Include="SQLQueryStmt.cs" />

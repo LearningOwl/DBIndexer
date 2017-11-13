@@ -43,19 +43,39 @@ namespace DBIndexer
                         {
                             ColumnTableStmt.ParseWorkload(filename);
                         }
-                        
+
+
+                        // Print Formatted Console Output:
+
+
                         // Print output Headers
-                        Console.WriteLine("\n{0,10} {1,30} {2,30} {3,20} {4,20} {5,20} {6,20} {7,20} {8,20}", "TableName", "ColumnName", "TotalOccurences", "GroupByClauseOccurences", "WhereClauseOccurences", "HavingClauseOccurences", "ProjectClauseOccurences", "JoinClauseOccurences", "OrderByClauseOccurences");
+                        var consoletable = new ConsoleTable("TableName", "ColumnName", "Total", "GroupBy", "Where", "Having", "Project", "Join", "OrderBy", "Unknown", "WhereOperators");
 
                         // Iterate over each table to print the collected values of tables and columns and their stats.
-                        foreach (DBTable table in Utilities.DictParsedTables.Select(tab=>tab.Value).ToList<DBTable>())
+                        foreach (DBTable table in Utilities.DictParsedTables.Select(tab => tab.Value).ToList<DBTable>())
                         {
                             List<Column> lstColumns = table.DictColumns.Select(col => col.Value).ToList<Column>();
                             foreach (Column col in lstColumns)
                             {
-                                Console.WriteLine("{0,10} {1,30} {2,30} {3,20} {4,20} {5,20} {6,20} {7,20} {8,20}", table.name, col.Name, col.TotalNumOfOccurrences, col.GroupByOccurences, col.WhereOccurences, col.HavingOccurences, col.ProjectOccurences, col.UsedForJoinOccurrences, col.OrderByOccurences);
+                                string CommaSeparatedOperator = string.Empty;
+
+                                foreach (KeyValuePair<string,long> item in col.WhereComparisonOperators)
+                                {
+                                    if (CommaSeparatedOperator == string.Empty)
+                                        CommaSeparatedOperator = item.Key + " : " + item.Value;
+                                    else
+                                        CommaSeparatedOperator = CommaSeparatedOperator + " | " + item.Key + " : " + item.Value;
+
+                                }
+                                consoletable.AddRow(table.name, col.Name, col.TotalNumOfOccurrences, col.GroupByOccurences, col.WhereOccurences, col.HavingOccurences, col.ProjectOccurences, col.UsedForJoinOccurrences, col.OrderByOccurences, col.UnknownOccurences, CommaSeparatedOperator);
                             }
                         }
+
+                        Console.WriteLine("######################  Printing Column stats as per the Clause occurence in Query. ####################");
+                        consoletable.Write(Format.MarkDown);
+                        Console.WriteLine();
+
+                        Console.ReadKey();
 
                         // Printing Query Text and its occurences as a whole query
                         SQLQueryStmt.PrintQueryOccurenceStats();

@@ -31,6 +31,10 @@ namespace MTUtilities
 
             if (ret == 0)
             {
+                Console.WriteLine("###################### Parsing Started : " + sqlFilename );
+
+                // Print output Headers
+                var consoletable = new ConsoleTable("Statement Number", "Statement Type", "Parse OK ?", "Query Text [Truncated]");
 
                 for (int i = 0; i < sqlparser.sqlstatements.size(); i++)
                 {
@@ -62,8 +66,13 @@ namespace MTUtilities
                             Utilities.DictWorkloadQueries[query.QueryId].NumOfOccurences = 1;
                         }
 
+                        consoletable.AddRow( "Parsed Statement["+i+"]", (sqlStatementType == ESqlStatementType.sstselect)?"SELECT": "OTHER" ,"Successful" ,query.QueryText.Replace(System.Environment.NewLine, " ").Substring(0, 35) + "..." );
+
                     }
+
                 }
+                consoletable.Write(Format.MarkDown);
+                Console.WriteLine();
                 Console.WriteLine("###################### "+sqlFilename+" Parsing Complete ####################");
             }
             else

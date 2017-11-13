@@ -42,12 +42,25 @@ namespace MTUtilities
         /// </summary>
         public static void PrintQueryOccurenceStats()
         {
-            Console.WriteLine("{0,10} {1,30} {2,30}", "Query Identifier", "Total Occurences", "Query Text");
+
+            // Print output Headers
+            var consoletable = new ConsoleTable("Query Text", "Total Occurences", "Query Identifier");
+
+            // Print declaration statement
+            Console.WriteLine("######################  Printing Query Occurence Stats from the workload execution  ####################");
 
             foreach (KeyValuePair<Guid, SQLQueryStmt> qry in Utilities.DictWorkloadQueries)
             {
-                Console.WriteLine("{0,30} {1,30}   {2,20}", qry.Value.QueryText.ToString(), qry.Value.NumOfOccurences, qry.Key);
+                consoletable.AddRow(qry.Value.QueryText.Replace(System.Environment.NewLine, " ").Substring(0, 35) + "...", qry.Value.NumOfOccurences, qry.Key);
+                //consoletable.AddRow(qry.Value.QueryText.Replace(System.Environment.NewLine,""), qry.Value.NumOfOccurences, qry.Key);
+
             }
+
+            consoletable.Write(Format.MarkDown);
+            Console.WriteLine();
+            Console.ReadLine();
+
+            
         }
 
         /// <summary>
@@ -77,6 +90,8 @@ namespace MTUtilities
             using (SqlConnection connection =
                 new SqlConnection(ConnectionString))
             {
+                // Create Header for the data to be printed after benchmarking.
+                var consoletable = new ConsoleTable("Query Id", "Query Text [Truncated]", "Rows Returned", "Successful Execution");
 
                 connection.Open();
                 foreach (KeyValuePair<Guid, SQLQueryStmt> qry in Utilities.DictWorkloadQueries)
@@ -88,10 +103,9 @@ namespace MTUtilities
                     try
                     {
                         adapter.Fill(dataSet);
-                        
-                        // SqlDataReader reader = command.ExecuteReader();
-                        // Not sure how to check if the query was successfully executed.
 
+                        consoletable.AddRow(qry.Key, qry.Value.QueryText.Replace(System.Environment.NewLine, " ").Substring(0, 35) + "...", dataSet.Tables[0].Rows.Count, (dataSet.Tables[0].Rows.Count != 0) ? "Execution Successful": "Execution Failed");
+                        
                     }
                     catch (Exception ex)
                     {
@@ -100,7 +114,11 @@ namespace MTUtilities
 
                     
                 }
+ 
                 connection.Close();
+
+                consoletable.Write(Format.MarkDown);
+                Console.WriteLine();
 
                 
 

@@ -66,14 +66,27 @@ namespace MTUtilities
                 // set to the console window.
                 try
                 {
+
+
+                    // Print output Headers
+                    var consoletable = new ConsoleTable("Database", "SchemaName", "TableName");
+
+                    // Print declaration statement
+                    Console.WriteLine("######################  Printing schemas and tables that are accessible to provided user credential  ####################");
+
                     connection.Open();
+
                     SqlDataReader OutputReader = command.ExecuteReader();
                     while (OutputReader.Read())
                     {
-                        Console.WriteLine("{0,10}{1,20}{2,20}",
-                            OutputReader[0], OutputReader[1], OutputReader[2]);
+                        consoletable.AddRow(OutputReader[0], OutputReader[1], OutputReader[2]);
                     }
+
                     OutputReader.Close();
+
+                    consoletable.Write(Format.MarkDown);
+                    Console.WriteLine();
+
                     GreenLights = true;
                 }
                 catch (Exception ex)
