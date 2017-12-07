@@ -47,7 +47,6 @@ namespace DBIndexer
 
                         // Print Formatted Console Output:
 
-
                         // Print output Headers
                         var consoletable = new ConsoleTable("TableName", "ColumnName", "Total", "GroupBy", "Where", "Having", "Project", "Join", "OrderBy", "Unknown", "WhereOperators");
 
@@ -75,8 +74,7 @@ namespace DBIndexer
                         consoletable.Write(Format.MarkDown);
                         Console.WriteLine();
 
-                        Console.ReadKey();
-
+                        
                         // Printing Query Text and its occurences as a whole query
                         SQLQueryStmt.PrintQueryOccurenceStats();
 
@@ -84,9 +82,10 @@ namespace DBIndexer
                         // Execute the workload queries one by one and benchmark them
                         SQLQueryStmt.BenchmarkWorload("","","","","");
 
+                        // Start ranking now based on the collected data.
 
-                        // Then get all the info about tables and columns from the database.
-                        // Also get the information about the
+
+                        
 
                     }
                     else

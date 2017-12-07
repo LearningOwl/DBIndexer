@@ -16,6 +16,9 @@ namespace MTUtilities
         public float ReductionFactor= 0;
         public float Selectivity = 0;
 
+        // This is the score used for ranking analysis and calculated based on the Occurence parameters.
+        public long Score = 0;
+
         // Datatype Parameters
         public Boolean IsNull = false;
         public Boolean IsIndexed = false;
@@ -35,5 +38,11 @@ namespace MTUtilities
         public Dictionary<string, long> WhereComparisonOperators = new Dictionary<string, long>();
 
         
+        public void CalculateScore()
+        {
+
+        }
+
+
     }
 }

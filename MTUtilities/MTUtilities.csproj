@@ -49,6 +49,7 @@
     <Compile Include="ConsoleTable.cs" />
     <Compile Include="DBIndex.cs" />
     <Compile Include="DBTable.cs" />
+    <Compile Include="ScoreAnalysis.cs" />
     <Compile Include="SQLQueryStmt.cs" />
     <Compile Include="Utilities.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
