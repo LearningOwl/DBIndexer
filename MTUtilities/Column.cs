@@ -33,8 +33,12 @@ namespace MTUtilities
         public int HavingOccurences = 0;
         public int OrderByOccurences = 0;
         public int UnknownOccurences = 0; // These are the occurences when the parser could not determine the tablename associated with the column or it is ambigious.
+        public int InsertOccurences = 0;
+        public int UpdateOccurences = 0;
         public bool IsCandidateCompositeKey = false;
         public Dictionary<string, long> WhereComparisonOperators = new Dictionary<string, long>();
+        public long HashScore = 0;
+        public long BinaryScore = 0;
 
         /// <summary>
         /// This is the scoring method for the columns based on the type of operator used and the frequency of the occurence of that column.
@@ -43,6 +47,8 @@ namespace MTUtilities
         /// </summary>
         public long CalculateScore()
         {
+
+
             if (this.TotalNumOfOccurrences != 0
                     && (TotalNumOfOccurrences == UsedForJoinOccurrences + ProjectOccurences + WhereOccurences + GroupByOccurences + HavingOccurences + OrderByOccurences + UnknownOccurences))
             {
@@ -60,15 +66,19 @@ namespace MTUtilities
                     {
                         case "equalsTo":
                             Score = Score + op.Value * Convert.ToInt64(OperatorScore.EqualTo);
+                            HashScore += op.Value;
                             break;
                         case "greaterThan":
                             Score = Score + op.Value * Convert.ToInt64(OperatorScore.Greater_Or_LessThan);
+                            BinaryScore += op.Value;
                             break;
                         case "lessThan":
                             Score = Score + op.Value * Convert.ToInt64(OperatorScore.Greater_Or_LessThan);
+                            BinaryScore += op.Value;
                             break;
                         case "unknown":
                             Score = Score + op.Value * Convert.ToInt64(OperatorScore.unknown);
+                            BinaryScore += op.Value; // We take this as binary since most of the unknown cases are GroupBy and aggregation and order by clauses in the where clause formed of a subquery.
                             break;
                         default:
                             break;

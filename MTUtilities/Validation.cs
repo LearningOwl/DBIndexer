@@ -34,20 +34,28 @@ namespace MTUtilities
              */
             // AttachDbFilename=C:\Program Files\Microsoft SQL Server\MSSQL13.LEARNINGOWL\MSSQL\DATA\AdventureWorks2016_Data.mdf;
 
-            //Connection string example with Windows Authentication mode or Integrated Security mode.
-            string ConnectionString = @"Data Source=DESKTOP-R4E3L7J\LEARNINGOWL;
-                          Initial Catalog=AdventureWorks2016;
+            string ConnectionString = "";
+
+            if (UserName == "" && Password == "")
+            {
+                //Connection string example with Windows Authentication mode or Integrated Security mode.
+                ConnectionString = @"Data Source= " + ServerName + @";
+                          Initial Catalog=" + DBName + @";
                           Asynchronous Processing=True;
                           Integrated Security=True;
                           Connect Timeout=30";
+            }
+            else
+            {
+                // Connection string example with UserName and Password:
+                ConnectionString = @"Data Source=" + ServerName + @";
+                          Initial Catalog=" + DBName + @";
+                          User Id= " + UserName + @" ;
+                          Password= " + Password + @";
+                          Asynchronous Processing=True;
+                          Connect Timeout=30";
 
-            // Connection string example with UserName and Password:
-            //string ConnectionString = @"Data Source=DESKTOP-R4E3L7J\LEARNINGOWL;
-            //              Initial Catalog=AdventureWorks2016;
-            //              User Id=sa;
-            //              Password=Jayant123*;
-            //              Asynchronous Processing=True;
-            //              Connect Timeout=30";
+            }
 
             string queryString = "SELECT TABLE_CATALOG, TABLE_SCHEMA, TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = @FilterCondition";  // WHERE ColumnName > @FilterCondition
             // Create and open the connection in a using block. This

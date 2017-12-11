@@ -9,9 +9,13 @@ namespace MTUtilities
 {
     public class ScoreAnalysis
     {
-        // Holds the final score for each table.
-        Dictionary<string, long> TableScore = new Dictionary<string, long>();
-
+        public string TableName = "";
+        public string ColumnName = "";
+        public long TableScore = 0;
+        public long ColumnScore = 0;
+        public long ColumnHashScore = 0;
+        public long ColumnBinaryScore = 0;
+        
         /// <summary>
         /// This method scores the tables according to the number of occurences in the query workload.
         /// This is used for frequency of access while analyzing the importance of a table in the index suggestions
@@ -33,23 +37,26 @@ namespace MTUtilities
                 }
 
                 // Calculate the table score based on the combined column Score agaisnt the occurence of table on the frequency of Select, upate and insert queries.
+                // We increment the score for index candidacy for Select Occurences and decrement them for Insert and update occurences since that deters us due to Write performance tradeoff.
                 foreach (KeyValuePair<string, long> occurence in dBTable.DictOccurencesStmts)
                 {
                     if(ESqlStatementType.sstselect.ToString() == occurence.Key)
                     {
-                        TableScore[tablename.Key] += occurence.Value * CombinedColumnScore;
+                        //Utilities.TableScore[tablename.Key] += occurence.Value * CombinedColumnScore;
+                        dBTable.Score += occurence.Value * CombinedColumnScore;
                     }
                     else if (ESqlStatementType.sstupdate.ToString() == occurence.Key)
                     {
-                        TableScore[tablename.Key] -= occurence.Value * CombinedColumnScore;
+                        //Utilities.TableScore[tablename.Key] -= occurence.Value * CombinedColumnScore;
+                        dBTable.Score -= occurence.Value * CombinedColumnScore;
                     }
                     else if (ESqlStatementType.sstinsert.ToString() == occurence.Key)
                     {
-                        TableScore[tablename.Key] -= occurence.Value * CombinedColumnScore;
+                        // Utilities.TableScore[tablename.Key] -= occurence.Value * CombinedColumnScore;
+                        dBTable.Score -= occurence.Value * CombinedColumnScore;
                     }
-                    
-                }
 
+                }
 
             } 
 
@@ -62,9 +69,13 @@ namespace MTUtilities
         public void ScoreColumn()
         {
 
-        }
+            // run the Scoring for all the tables spotted in the workload.
+            foreach (KeyValuePair<string, DBTable> tablename in Utilities.DictParsedTables)
+            {
 
-        
+
+            }
+        }
 
     }
 }

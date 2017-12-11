@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using gudusoft.gsqlparser;
 using gudusoft.gsqlparser.nodes;
-
+using System.Data.SqlClient;
 
 namespace MTUtilities
 {
@@ -97,6 +97,43 @@ namespace MTUtilities
                     dictColumns = dbtable.DictColumns;
                 }
 
+                // If the column occurs first time, we will have to fetch the column id and set it for that column from the database.
+                if (dbtable.Table_Object_Id == 0)
+                {
+                    long Table_Object_id = 0;
+                    string Table_Schema_Name = "";
+                    SqlConnection scon = new SqlConnection();
+                    //Connection string example with Windows Authentication mode or Integrated Security mode.
+                    string ConnectionString = @"Data Source=DESKTOP-R4E3L7J\LEARNINGOWL;
+                          Initial Catalog=AdventureWorks2016;
+                          Asynchronous Processing=True;
+                          Integrated Security=True;
+                          Connect Timeout=30";
+                    using (SqlConnection connection = new SqlConnection(ConnectionString))
+                    {
+                        // select top 1 c.object_id as 'Table_Object_id', object_Name(c.object_id) as 'TableName', c.column_id, c.name as ColumnName  from sys.all_columns c where object_Name(c.object_id) = '" + column.Name + "' and c.name = '" + table_name + "'"
+                        SqlCommand cmd = new SqlCommand("select top 1 c.object_id as 'Table_Object_id', OBJECT_SCHEMA_NAME(c.object_id) as 'Table_Schema_Name' from sys.all_columns c where object_name(c.object_id) = '" + table_name + "'", connection);
+                        connection.Open();
+
+                        SqlDataReader reader = cmd.ExecuteReader();
+                        while (reader.Read())
+                        {
+                            Table_Object_id = Convert.ToInt64(reader["Table_Object_Id"]);
+                            Table_Schema_Name = reader["Table_Schema_Name"].ToString();
+                        }
+
+                        connection.Close();
+                    }
+
+                    // Assign the column dictionary along with the dbtable object back to the global dbtable dictionary
+                    if (dbtable.Table_Object_Id != Table_Object_id && Table_Object_id != 0)
+                    {
+                        dbtable.Table_Object_Id = Table_Object_id;
+                        dbtable.Table_Schema_Name = Table_Schema_Name;
+                    }
+
+                }
+
                 // Assign/Reassign name to the tableboject.
                 dbtable.name = table_name;
 
@@ -142,17 +179,32 @@ namespace MTUtilities
                     {
                         column = dictColumns.FirstOrDefault(col => col.Value.Name == objectName.ColumnNameOnly.ToLower()).Value;
                     }
+                    else
+                    {
+                        // Set the column name for first time occurence
+                        column.Name = objectName.ColumnNameOnly.ToLower();
+                    }
 
-                    // Set the column name and occurence irrespective of the item being found in dictionary or not.
-                    column.Name = objectName.ColumnNameOnly.ToLower();
+                    // Set the occurence irrespective of the item being found previously in dictionary or not.
                     column.TotalNumOfOccurrences += 1;
 
                     // Switch over the location of the column and update the occurence accrodingly.
                     switch (objectName.Location)
                     {
-                        case ESqlClause.unknown:
+                        case ESqlClause.insertColumn:
                             {
-                                column.UnknownOccurences += 1;
+                                column.InsertOccurences += 1;
+                                break;
+                            }
+                        case ESqlClause.insertValues:
+                            {
+                                // This insert is being counted as Projection since this is the column value to be inserted and so it will projected to be inserted in the second table.
+                                column.ProjectOccurences += 1;
+                                break;
+                            }
+                        case ESqlClause.forUpdate:
+                            {
+                                column.UpdateOccurences += 1;
                                 break;
                             }
                         case ESqlClause.resultColumn:
@@ -190,6 +242,11 @@ namespace MTUtilities
                                 column.UsedForJoinOccurrences += 1;
                                 break;
                             }
+                        case ESqlClause.unknown:
+                            {
+                                column.UnknownOccurences += 1;
+                                break;
+                            }
                         default:
                             break;
                     }
@@ -208,16 +265,64 @@ namespace MTUtilities
                         }
                     }
 
-                    // Assign the column dictionary along with the dbtable object back to the global dbtable dictionary.
-                    long KeyValue = dictColumns.FirstOrDefault(col => col.Value.Name == column.Name).Key;
-                    if (KeyValue == 0)
+                    // If the column occurs first time, we will have to fetch the column id and set it for that column from the database.
+                    if (column.Column_Object_Id == 0)
                     {
-                        dictColumns[objectName.ColumnNo] = column;
+                        long Column_Object_id = 0;
+                        SqlConnection scon = new SqlConnection();
+                        //Connection string example with Windows Authentication mode or Integrated Security mode.
+                        string ConnectionString = @"Data Source=DESKTOP-R4E3L7J\LEARNINGOWL;
+                          Initial Catalog=AdventureWorks2016;
+                          Asynchronous Processing=True;
+                          Integrated Security=True;
+                          Connect Timeout=30";
+                        using (SqlConnection connection = new SqlConnection(ConnectionString))
+                        {
+                            // select top 1 c.object_id as 'Table_Object_id', object_Name(c.object_id) as 'TableName', c.column_id, c.name as ColumnName  from sys.all_columns c where object_Name(c.object_id) = '" + column.Name + "' and c.name = '" + table_name + "'"
+                            SqlCommand cmd = new SqlCommand("select top 1 c.column_id as ColumnName from sys.all_columns c where Object_Schema_name(c.object_id) = '"+ dbtable.Table_Schema_Name + "' and object_name(c.object_id) =  '" + table_name + "' and c.name = '" + column.Name + "'", connection);
+                            connection.Open();
+                            Object obj = cmd.ExecuteScalar();
+                            
+                            Column_Object_id = ( (obj != null)? Convert.ToInt64(obj.ToString()) :0) ;
+
+                            // Collect data about the Seletivity and reduction factor of the columns in consideration.
+                            if (Column_Object_id != 0)
+                            {
+                                // Get the selectivity of this column and update it in the column properties.
+                                cmd = new SqlCommand(@"select cast( 
+                                                            cast(count(1) as decimal(18,2)) / 
+                                                            cast(count(distinct " + column.Name + @") as decimal(18,2) ) 
+                                                            as decimal(18,2)) as Selectivity 
+                                                       from "+ dbtable.Table_Schema_Name + @"." + table_name, connection);
+
+                                obj = cmd.ExecuteScalar();
+
+                                // Selectivity = Distinct Values / Total values
+                                // Reduction Factor = 1 / Selectivity
+                                if (float.Parse(obj.ToString()) != 0.0)
+                                {
+                                    column.Selectivity = float.Parse(obj.ToString());
+                                    column.ReductionFactor = 1 / column.Selectivity;
+                                }
+                                
+                            }
+                            connection.Close();
+
+                        }
+
+                        // Assign the column dictionary along with the dbtable object back to the global dbtable dictionary
+                        if (dictColumns.FirstOrDefault(col => col.Value.Name == column.Name).Key != Column_Object_id)
+                        {
+                            column.Column_Object_Id = Column_Object_id;
+                            dictColumns[Column_Object_id] = column;
+                        }
+
                     }
                     else
                     {
-                        dictColumns[KeyValue] = column;
+                        dictColumns[column.Column_Object_Id] = column;
                     }
+
                     dbtable.DictColumns = dictColumns;
 
                     Utilities.DictParsedTables[table_name] = dbtable;

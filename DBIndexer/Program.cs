@@ -12,9 +12,17 @@ namespace DBIndexer
     {
         static void Main(string[] args)
         {
+            string ServerName = string.Empty;
+            string InstanceName = string.Empty;
+            string UserName = string.Empty;
+            string Password = string.Empty;
+            string DBFilePath = string.Empty;
+            string DBName = string.Empty;
+            Boolean IntegratedMode = false;
+
             try
             {
-                Console.WriteLine("We are taking the parameters in reality. This statement is just for test purposes. \n Type Yes to start the execution or help to get item options.");
+                //Console.WriteLine("We are taking the parameters in reality. This statement is just for test purposes. \n Type Yes to start the execution or help to get item options.");
 
                 string input = Console.ReadLine();
                 if (input == "help")
@@ -26,11 +34,42 @@ namespace DBIndexer
                 }
                 else
                 {
-                    //string[] parameters = input.Split(' ');
+                    string[] parameters = input.Split(' ');
+                    foreach (string parmetr in parameters)
+                    {
+                        if (parmetr.StartsWith("-S"))
+                        {
+                            ServerName = parmetr.Substring(2, parmetr.Length - 2);
+                        }
+                        else if (parmetr.StartsWith("-D"))
+                        {
+                            DBName = parmetr.Substring(2, parmetr.Length - 2);
+                        }
+                        else if (parmetr.StartsWith("-U"))
+                        {
+                            UserName = parmetr.Substring(2, parmetr.Length - 2);
+                        }
+                        else if (parmetr.StartsWith("-P"))
+                        {
+                            Password = parmetr.Substring(2, parmetr.Length - 2);
+                        }
+                        else if (parmetr.StartsWith("-I"))
+                        {
+                            IntegratedMode = true;
+                        }
 
-                    // Calls MTUtilities.Utilities.PerformCheckUp for checking.
+                    }
+
+                    if (ServerName == String.Empty || DBName == string.Empty || (IntegratedMode = false && ( UserName == string.Empty || Password == string.Empty)) ) 
+                    {
+                        throw new InvalidDataException("Atleast one of the input parameters was not provided. Please check that all the values are entered for required parameters. If not sure, type 'help' to get the required details. ");
+                    }
+                    // DBIndexer -SDESKTOP-R4E3L7J\LEARNINGOWL -DAdventureWorks2016 -Usa -PJayant123* -ITrue
+                    // @"DESKTOP-R4E3L7J\LEARNINGOWL", "", @"sa", @"Jayant123*", @"AdventureWorks2016"
+
+                    // Checkup ifthe credentials provided are correct and have the proper privileges for this database.
                     MTUtilities.Utilities utilities = new Utilities();
-                    bool CheckUpSucessful = utilities.PerformChecksUp("", "", "", "", "");
+                    bool CheckUpSucessful = utilities.PerformChecksUp(ServerName, DBFilePath, UserName, Password, DBName);
 
                     
                     if (CheckUpSucessful)           // Start parsing and gathering the statistics of the workload:
@@ -80,10 +119,216 @@ namespace DBIndexer
 
 
                         // Execute the workload queries one by one and benchmark them
-                        SQLQueryStmt.BenchmarkWorload("","","","","");
+                        SQLQueryStmt.BenchmarkWorload(@"DESKTOP-R4E3L7J\LEARNINGOWL", "", @"sa", @"Jayant123*", @"AdventureWorks2016");
 
                         // Start ranking now based on the collected data.
+                        ScoreAnalysis ScoreMaster = new ScoreAnalysis(); ;
+                        ScoreMaster.ScoreTables();
 
+                        // Create a sheet like structure from data members for futher analysis. 
+                        List<ScoreAnalysis> ScoreBoard = new List<ScoreAnalysis>();
+                        
+                        // Get all the calculated scores in the ScoreBaord list.
+                        foreach (KeyValuePair<string, DBTable> table in Utilities.DictParsedTables)
+                        {
+                            foreach (KeyValuePair<long,Column> colitem in table.Value.DictColumns)
+                            {
+                                ScoreMaster = new ScoreAnalysis();
+
+                                // Update the table data for each column.
+                                ScoreMaster.TableName = table.Value.name;
+                                ScoreMaster.TableScore = table.Value.Score;
+
+                                // update the column scoring data for each column.
+                                ScoreMaster.ColumnName = colitem.Value.Name;
+                                ScoreMaster.ColumnScore = colitem.Value.Score;
+                                ScoreMaster.ColumnHashScore = colitem.Value.HashScore;
+                                ScoreMaster.ColumnBinaryScore = colitem.Value.BinaryScore;
+
+                                // Add the final score for each column to the Scoreboard.
+                                ScoreBoard.Add(ScoreMaster);
+                            }
+                        }
+                        
+                        // Sort the List by Scores:
+                        //List<ScoreAnalysis> FinalScoreBoard = ScoreBoard.OrderByDescending(x => x.TableScore).ThenByDescending(x => x.ColumnScore).ToList<ScoreAnalysis>();
+
+                        ConsoleTable ScoreBoardOutput = new ConsoleTable("Table_Name", "Table_Score", "Column_Name", "Column_Score", "HashScore", "Binary Score");
+                        ScoreBoard = ScoreBoard.OrderByDescending(x => x.TableScore).ThenByDescending(x => x.ColumnScore).ToList<ScoreAnalysis>();
+
+                        foreach (ScoreAnalysis Score in ScoreBoard)
+                        {
+                            ScoreBoardOutput.AddRow(Score.TableName, Score.TableScore, Score.ColumnName, Score.ColumnScore, Score.ColumnHashScore, Score.ColumnBinaryScore);
+                        }
+
+                        // Print the output
+                        Console.WriteLine("######################  Printing final scores for each table and column by the order of highest scores first. ####################");
+                        
+                        ScoreBoardOutput.Write(Format.MarkDown);
+                        Console.WriteLine();
+
+
+
+                        // Start deciding on the index options for each table based on the  column heuristics.
+                        // Algo
+                        // Check for each column's hash/binary choice based on their respective scores.
+                        // check for combination of columns marked as hash/ binary to be implemented as index pairs based on the highest scored column.
+                        // suggest the index with highest score along with the hash and binary combinations as final choices.
+
+                        Dictionary<string, List<string>> HashChoices = new Dictionary<string, List<string>>();
+                        Dictionary<string, List<string>> BinaryChoices = new Dictionary<string, List<string>>();
+ 
+                        // Compare Hash and Binary choices
+                        foreach (KeyValuePair<string,DBTable> table in Utilities.DictParsedTables)
+                        {
+                            List<string> HashColumns = new List<string>();
+                            List<string> BinaryColumns = new List<string>();
+
+                            List<ScoreAnalysis> ScoredTable = ScoreBoard.Where(x => x.TableName == table.Value.name).ToList<ScoreAnalysis>();
+
+                            long TopScore = ScoredTable.Max(x => x.ColumnScore);
+                            ScoreAnalysis TopScoreColName = ScoredTable.Where(x => x.ColumnScore == TopScore).Select(x=>x).FirstOrDefault();
+
+                            
+
+                            if (TopScoreColName.ColumnHashScore.CompareTo(TopScoreColName.ColumnBinaryScore) > 0) // Hash Score is more
+                            {
+                                // Check if hash is more by 8% or more.
+                                if ((TopScoreColName.ColumnHashScore * 92 / 100) > TopScoreColName.ColumnBinaryScore)
+                                {
+                                    HashColumns.Add(TopScoreColName.ColumnName);
+                                    HashChoices[TopScoreColName.TableName] = HashColumns;
+                                }
+                            }
+                            else if (TopScoreColName.ColumnHashScore.CompareTo(TopScoreColName.ColumnBinaryScore) == 0) // Hash and Binary scores are equal
+                            {
+                                // Add an entry for Hash
+                                HashColumns.Add(TopScoreColName.ColumnName);
+                                HashChoices[TopScoreColName.TableName] = HashColumns;
+                                
+                                // Add an entry for Binary
+                                BinaryColumns.Add(TopScoreColName.ColumnName);
+                                BinaryChoices[TopScoreColName.TableName] = BinaryColumns;
+                            }
+                            else if (TopScoreColName.ColumnHashScore.CompareTo(TopScoreColName.ColumnBinaryScore) < 0) // Binary score is more.
+                            {
+                                BinaryColumns.Add(TopScoreColName.ColumnName);
+                                BinaryChoices[TopScoreColName.TableName] = BinaryColumns;
+                            }
+
+                            foreach (ScoreAnalysis item in ScoredTable)
+                            {
+                                if (item.ColumnName != TopScoreColName.ColumnName) // For all columns other than the top scoring column
+                                {
+                                    if (item.ColumnHashScore == TopScoreColName.ColumnHashScore && TopScoreColName.ColumnHashScore != 0) // if hash score is equal to max hash score
+                                    {
+                                        if (HashChoices.Count == 0) // Case when the binary score was more than hash for TopScoredColumn
+                                        {
+                                            string CompositeHashcol = TopScoreColName.ColumnName + ',' + item.ColumnName;
+                                            HashColumns.Add(CompositeHashcol);
+                                            HashChoices[TopScoreColName.TableName] = HashColumns;
+                                        }
+                                        else // Case when the top scored hash column is already added to the choices
+                                        {
+                                            string CompositeHashcol = HashColumns.Where(x => x.StartsWith(TopScoreColName.ColumnName)).FirstOrDefault();
+                                            if (CompositeHashcol != "" && CompositeHashcol != string.Empty)
+                                            {
+                                                HashColumns.Remove(CompositeHashcol);
+                                                CompositeHashcol = CompositeHashcol + ',' + item.ColumnName;
+                                                HashColumns.Add(CompositeHashcol);
+                                                HashChoices[TopScoreColName.TableName] = HashColumns;
+                                            }
+                                        }
+                                        
+                                    }
+                                    else if (((TopScoreColName.ColumnHashScore * 92) / 100) <= item.ColumnHashScore && TopScoreColName.ColumnHashScore != 0) // if hash score is close enough to be together as a composite hash index
+                                    {
+                                        HashColumns.Add(item.ColumnName);
+                                    }
+                                    else if ( (item.ColumnBinaryScore == TopScoreColName.ColumnBinaryScore && TopScoreColName.ColumnBinaryScore != 0) 
+                                        || (((TopScoreColName.ColumnBinaryScore * 75) / 100) <= item.ColumnBinaryScore) )  // if the binary score is equal to the max binary score
+                                    {
+                                        if (BinaryChoices.Count == 0) // Case when the hash score was more than Binary for TopScoredColumn
+                                        {
+                                            string CompositeBinarycol = TopScoreColName.ColumnName + ',' + item.ColumnName;
+                                            BinaryColumns.Add(CompositeBinarycol);
+                                            BinaryChoices[TopScoreColName.TableName] = BinaryColumns;
+                                        }
+                                        else // Case when the top scored binary column is already added to the choices
+                                        {
+                                            string CompositeBinarycol = BinaryColumns.Where(x => x.StartsWith(TopScoreColName.ColumnName)).FirstOrDefault();
+                                            if (CompositeBinarycol != "" && CompositeBinarycol != string.Empty)
+                                            {
+                                                BinaryColumns.Remove(CompositeBinarycol);
+                                                CompositeBinarycol = CompositeBinarycol + ',' + item.ColumnName;
+                                                BinaryColumns.Add(CompositeBinarycol);
+                                                BinaryChoices[TopScoreColName.TableName] = BinaryColumns;
+                                            }
+                                        }
+                                    }
+                                    
+                                }
+
+
+                            }
+                                    
+                        }
+
+                        // Create the output table
+                        ConsoleTable ct = new ConsoleTable("Table_Name", "Index_Columns", "Index_Type");
+                        List<OutputUtil> Output = new List<OutputUtil>();
+
+                        // Add the final Hash choices to the output.
+                        foreach (KeyValuePair<string,List<string>> choice in HashChoices)
+                        {
+                            foreach (string columns in choice.Value)
+                            {
+                                OutputUtil ot = new OutputUtil();
+                                ot.Table_Name = choice.Key;
+                                ot.Index_Columns = columns;
+                                ot.Index_type = "Hash";
+                                Output.Add(ot);
+                                
+                            }
+                        }
+
+                        // Add the final Binary choices to the output.
+                        foreach (KeyValuePair<string, List<string>> choice in BinaryChoices)
+                        {
+                            foreach (string columns in choice.Value)
+                            {
+                                OutputUtil ot = new OutputUtil();
+                                ot.Table_Name = choice.Key;
+                                ot.Index_Columns = columns;
+                                ot.Index_type = "Binary";
+                                Output.Add(ot);
+                            }
+                        }
+
+                        // Sort the output by the tablenames.
+                        Output = Output.OrderBy(table => table.Table_Name).ToList<OutputUtil>();
+
+                        // Add the final output after sorting table wise to the Console Printer.
+                        foreach (OutputUtil item in Output)
+                        {
+                            ct.AddRow(item.Table_Name, item.Index_Columns, item.Index_type);
+                        }
+                        ct.Write(Format.MarkDown);
+                        Console.WriteLine();
+                        Console.WriteLine("Do you want the analysis in a PDF ?");
+                        if (Console.ReadLine() == "Yes")
+                        {
+                            // write the code to output it to the pdf.
+                            string filepath = "";
+                            Console.WriteLine("PDF created at location : {0}", filepath);
+                            Console.WriteLine("Processing Complete.");
+                            Console.ReadKey();
+                        }
+                        else
+                        {
+                            Console.WriteLine("Processing Complete.");
+                            Console.ReadKey();
+                        }
 
                         
 
@@ -104,12 +349,10 @@ namespace DBIndexer
             
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public void UltityCalls()
-        {
+    }
 
-        }
+    public class OutputUtil
+    {
+        public string Table_Name, Index_Columns, Index_type;
     }
 }
