@@ -78,7 +78,7 @@ namespace DBIndexer
                     if (CheckUpSucessful)           // Start parsing and gathering the statistics of the workload:
                     {
                         // Get all the SQL files of the workload to be parsed.
-                        string[] filenames = Directory.GetFiles(@"C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug", "Adve*.sql", SearchOption.TopDirectoryOnly);
+                        string[] filenames = Directory.GetFiles(System.IO.Directory.GetCurrentDirectory(),"Adve*.sql", SearchOption.TopDirectoryOnly);
 
                         // Parse each file.
                         foreach (string filename in filenames)
