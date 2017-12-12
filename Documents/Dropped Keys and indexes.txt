@@ -1,0 +1,388 @@
+select q.query_id, qt.query_sql_text, pl.plan_id, rs.count_executions,
+ rs.first_execution_time, rs.last_execution_time, 
+ rs.min_logical_io_reads, rs.max_logical_io_reads,
+ rs.min_logical_io_reads, rs.max_logical_io_reads,
+ rs.min_logical_io_writes, rs.max_logical_io_writes,
+ rs.min_cpu_time, rs.max_cpu_time from
+sys.query_store_query q 
+inner join sys.query_store_query_text qt
+	on q.query_id = qt.query_text_id
+inner join sys.query_store_plan pl
+	on qt.query_text_id = pl.query_id
+inner join sys.query_store_runtime_stats rs
+	on pl.plan_id = rs.plan_id
+
+
+GO
+SELECT CASE
+    WHEN kc.object_id IS NOT NULL THEN 'ALTER TABLE ' + QUOTENAME(ss.name) + '.' + QUOTENAME(so.name) + ' DROP CONSTRAINT ' + si.name + ';'
+    ELSE 'DROP INDEX ' + si.name + ' ON ' + QUOTENAME(ss.name) + '.' + QUOTENAME(so.name) + ';'
+    END as 'Drop Command'
+    , si.object_id as 'Object ID'    , si.name as 'Index Name'
+    , si.index_id as 'Index ID'
+    , si.type_desc as 'Index Type'
+    , object_name(so.object_id) as 'Table Name'
+    , si.is_unique
+    , si.is_primary_key
+ FROM sys.indexes si
+    INNER JOIN sys.objects so ON si.object_id = so.object_ID
+    INNER JOIN sys.schemas ss ON so.schema_ID = ss.schema_id
+    LEFT JOIN sys.key_constraints kc on si.name = kc.name
+    INNER JOIN sys.tables st ON si.object_id = st.object_ID
+ WHERE si.object_id > 100             -- system objects
+    AND si.type >= 2                  -- anything not a clustered index
+    AND so.is_ms_shipped = 0         -- ignore MS specific objects
+    AND NOT EXISTS (SELECT name FROM sys.xml_indexes WHERE xml_index_type > 0 AND name = si.name)
+    AND st.filestream_data_space_id IS NULL
+ ORDER BY [Index Type]
+
+GO
+
+
+
+
+
+Dropped Foreign Keys:
+
+ALTER TABLE [Person].[Address] DROP CONSTRAINT [FK_Address_StateProvince_StateProvinceID];  
+ALTER TABLE [Production].[BillOfMaterials] DROP CONSTRAINT [FK_BillOfMaterials_Product_ProductAssemblyID];  
+ALTER TABLE [Production].[BillOfMaterials] DROP CONSTRAINT [FK_BillOfMaterials_Product_ComponentID];  
+ALTER TABLE [Production].[BillOfMaterials] DROP CONSTRAINT [FK_BillOfMaterials_UnitMeasure_UnitMeasureCode];  
+ALTER TABLE [Person].[BusinessEntityAddress] DROP CONSTRAINT [FK_BusinessEntityAddress_Address_AddressID];  
+ALTER TABLE [Person].[BusinessEntityAddress] DROP CONSTRAINT [FK_BusinessEntityAddress_AddressType_AddressTypeID];  
+ALTER TABLE [Person].[BusinessEntityAddress] DROP CONSTRAINT [FK_BusinessEntityAddress_BusinessEntity_BusinessEntityID];  
+ALTER TABLE [Person].[BusinessEntityContact] DROP CONSTRAINT [FK_BusinessEntityContact_Person_PersonID];  
+ALTER TABLE [Person].[BusinessEntityContact] DROP CONSTRAINT [FK_BusinessEntityContact_ContactType_ContactTypeID];  
+ALTER TABLE [Person].[BusinessEntityContact] DROP CONSTRAINT [FK_BusinessEntityContact_BusinessEntity_BusinessEntityID];  
+ALTER TABLE [Sales].[CountryRegionCurrency] DROP CONSTRAINT [FK_CountryRegionCurrency_CountryRegion_CountryRegionCode];  
+ALTER TABLE [Sales].[CountryRegionCurrency] DROP CONSTRAINT [FK_CountryRegionCurrency_Currency_CurrencyCode];  
+ALTER TABLE [Sales].[CurrencyRate] DROP CONSTRAINT [FK_CurrencyRate_Currency_FromCurrencyCode];  
+ALTER TABLE [Sales].[CurrencyRate] DROP CONSTRAINT [FK_CurrencyRate_Currency_ToCurrencyCode];  
+ALTER TABLE [Sales].[Customer] DROP CONSTRAINT [FK_Customer_Person_PersonID];  
+ALTER TABLE [Sales].[Customer] DROP CONSTRAINT [FK_Customer_Store_StoreID];  
+ALTER TABLE [Sales].[Customer] DROP CONSTRAINT [FK_Customer_SalesTerritory_TerritoryID];  
+ALTER TABLE [Production].[Document] DROP CONSTRAINT [FK_Document_Employee_Owner];  
+ALTER TABLE [Person].[EmailAddress] DROP CONSTRAINT [FK_EmailAddress_Person_BusinessEntityID];  
+ALTER TABLE [HumanResources].[Employee] DROP CONSTRAINT [FK_Employee_Person_BusinessEntityID];  
+ALTER TABLE [HumanResources].[EmployeeDepartmentHistory] DROP CONSTRAINT [FK_EmployeeDepartmentHistory_Department_DepartmentID];  
+ALTER TABLE [HumanResources].[EmployeeDepartmentHistory] DROP CONSTRAINT [FK_EmployeeDepartmentHistory_Employee_BusinessEntityID];  
+ALTER TABLE [HumanResources].[EmployeeDepartmentHistory] DROP CONSTRAINT [FK_EmployeeDepartmentHistory_Shift_ShiftID];  
+ALTER TABLE [HumanResources].[EmployeePayHistory] DROP CONSTRAINT [FK_EmployeePayHistory_Employee_BusinessEntityID];  
+ALTER TABLE [HumanResources].[JobCandidate] DROP CONSTRAINT [FK_JobCandidate_Employee_BusinessEntityID];  
+ALTER TABLE [Person].[Password] DROP CONSTRAINT [FK_Password_Person_BusinessEntityID];  
+ALTER TABLE [Person].[Person] DROP CONSTRAINT [FK_Person_BusinessEntity_BusinessEntityID];  
+ALTER TABLE [Sales].[PersonCreditCard] DROP CONSTRAINT [FK_PersonCreditCard_Person_BusinessEntityID];  
+ALTER TABLE [Sales].[PersonCreditCard] DROP CONSTRAINT [FK_PersonCreditCard_CreditCard_CreditCardID];  
+ALTER TABLE [Person].[PersonPhone] DROP CONSTRAINT [FK_PersonPhone_Person_BusinessEntityID];  
+ALTER TABLE [Person].[PersonPhone] DROP CONSTRAINT [FK_PersonPhone_PhoneNumberType_PhoneNumberTypeID];  
+ALTER TABLE [Production].[Product] DROP CONSTRAINT [FK_Product_UnitMeasure_SizeUnitMeasureCode];  
+ALTER TABLE [Production].[Product] DROP CONSTRAINT [FK_Product_UnitMeasure_WeightUnitMeasureCode];  
+ALTER TABLE [Production].[Product] DROP CONSTRAINT [FK_Product_ProductModel_ProductModelID];  
+ALTER TABLE [Production].[Product] DROP CONSTRAINT [FK_Product_ProductSubcategory_ProductSubcategoryID];  
+ALTER TABLE [Production].[ProductCostHistory] DROP CONSTRAINT [FK_ProductCostHistory_Product_ProductID];  
+ALTER TABLE [Production].[ProductDocument] DROP CONSTRAINT [FK_ProductDocument_Product_ProductID];  
+ALTER TABLE [Production].[ProductDocument] DROP CONSTRAINT [FK_ProductDocument_Document_DocumentNode];  
+ALTER TABLE [Production].[ProductInventory] DROP CONSTRAINT [FK_ProductInventory_Location_LocationID];  
+ALTER TABLE [Production].[ProductInventory] DROP CONSTRAINT [FK_ProductInventory_Product_ProductID];  
+ALTER TABLE [Production].[ProductListPriceHistory] DROP CONSTRAINT [FK_ProductListPriceHistory_Product_ProductID];  
+ALTER TABLE [Production].[ProductModelIllustration] DROP CONSTRAINT [FK_ProductModelIllustration_ProductModel_ProductModelID];  
+ALTER TABLE [Production].[ProductModelIllustration] DROP CONSTRAINT [FK_ProductModelIllustration_Illustration_IllustrationID];  
+ALTER TABLE [Production].[ProductModelProductDescriptionCulture] DROP CONSTRAINT [FK_ProductModelProductDescriptionCulture_ProductDescription_ProductDescriptionID];  
+ALTER TABLE [Production].[ProductModelProductDescriptionCulture] DROP CONSTRAINT [FK_ProductModelProductDescriptionCulture_Culture_CultureID];  
+ALTER TABLE [Production].[ProductModelProductDescriptionCulture] DROP CONSTRAINT [FK_ProductModelProductDescriptionCulture_ProductModel_ProductModelID];  
+ALTER TABLE [Production].[ProductProductPhoto] DROP CONSTRAINT [FK_ProductProductPhoto_Product_ProductID];  
+ALTER TABLE [Production].[ProductProductPhoto] DROP CONSTRAINT [FK_ProductProductPhoto_ProductPhoto_ProductPhotoID];  
+ALTER TABLE [Production].[ProductReview] DROP CONSTRAINT [FK_ProductReview_Product_ProductID];  
+ALTER TABLE [Production].[ProductSubcategory] DROP CONSTRAINT [FK_ProductSubcategory_ProductCategory_ProductCategoryID];  
+ALTER TABLE [Purchasing].[ProductVendor] DROP CONSTRAINT [FK_ProductVendor_Product_ProductID];  
+ALTER TABLE [Purchasing].[ProductVendor] DROP CONSTRAINT [FK_ProductVendor_UnitMeasure_UnitMeasureCode];  
+ALTER TABLE [Purchasing].[ProductVendor] DROP CONSTRAINT [FK_ProductVendor_Vendor_BusinessEntityID];  
+ALTER TABLE [Purchasing].[PurchaseOrderDetail] DROP CONSTRAINT [FK_PurchaseOrderDetail_Product_ProductID];  
+ALTER TABLE [Purchasing].[PurchaseOrderDetail] DROP CONSTRAINT [FK_PurchaseOrderDetail_PurchaseOrderHeader_PurchaseOrderID];  
+ALTER TABLE [Purchasing].[PurchaseOrderHeader] DROP CONSTRAINT [FK_PurchaseOrderHeader_Employee_EmployeeID];  
+ALTER TABLE [Purchasing].[PurchaseOrderHeader] DROP CONSTRAINT [FK_PurchaseOrderHeader_Vendor_VendorID];  
+ALTER TABLE [Purchasing].[PurchaseOrderHeader] DROP CONSTRAINT [FK_PurchaseOrderHeader_ShipMethod_ShipMethodID];  
+ALTER TABLE [Sales].[SalesOrderDetail] DROP CONSTRAINT [FK_SalesOrderDetail_SalesOrderHeader_SalesOrderID];  
+ALTER TABLE [Sales].[SalesOrderDetail] DROP CONSTRAINT [FK_SalesOrderDetail_SpecialOfferProduct_SpecialOfferIDProductID];  
+ALTER TABLE [Sales].[SalesOrderHeader] DROP CONSTRAINT [FK_SalesOrderHeader_Address_BillToAddressID];  
+ALTER TABLE [Sales].[SalesOrderHeader] DROP CONSTRAINT [FK_SalesOrderHeader_Address_ShipToAddressID];  
+ALTER TABLE [Sales].[SalesOrderHeader] DROP CONSTRAINT [FK_SalesOrderHeader_CreditCard_CreditCardID];  
+ALTER TABLE [Sales].[SalesOrderHeader] DROP CONSTRAINT [FK_SalesOrderHeader_CurrencyRate_CurrencyRateID];  
+ALTER TABLE [Sales].[SalesOrderHeader] DROP CONSTRAINT [FK_SalesOrderHeader_Customer_CustomerID];  
+ALTER TABLE [Sales].[SalesOrderHeader] DROP CONSTRAINT [FK_SalesOrderHeader_SalesPerson_SalesPersonID];  
+ALTER TABLE [Sales].[SalesOrderHeader] DROP CONSTRAINT [FK_SalesOrderHeader_ShipMethod_ShipMethodID];  
+ALTER TABLE [Sales].[SalesOrderHeader] DROP CONSTRAINT [FK_SalesOrderHeader_SalesTerritory_TerritoryID];  
+ALTER TABLE [Sales].[SalesOrderHeaderSalesReason] DROP CONSTRAINT [FK_SalesOrderHeaderSalesReason_SalesReason_SalesReasonID];  
+ALTER TABLE [Sales].[SalesOrderHeaderSalesReason] DROP CONSTRAINT [FK_SalesOrderHeaderSalesReason_SalesOrderHeader_SalesOrderID];  
+ALTER TABLE [Sales].[SalesPerson] DROP CONSTRAINT [FK_SalesPerson_Employee_BusinessEntityID];  
+ALTER TABLE [Sales].[SalesPerson] DROP CONSTRAINT [FK_SalesPerson_SalesTerritory_TerritoryID];  
+ALTER TABLE [Sales].[SalesPersonQuotaHistory] DROP CONSTRAINT [FK_SalesPersonQuotaHistory_SalesPerson_BusinessEntityID];  
+ALTER TABLE [Sales].[SalesTaxRate] DROP CONSTRAINT [FK_SalesTaxRate_StateProvince_StateProvinceID];  
+ALTER TABLE [Sales].[SalesTerritory] DROP CONSTRAINT [FK_SalesTerritory_CountryRegion_CountryRegionCode];  
+ALTER TABLE [Sales].[SalesTerritoryHistory] DROP CONSTRAINT [FK_SalesTerritoryHistory_SalesPerson_BusinessEntityID];  
+ALTER TABLE [Sales].[SalesTerritoryHistory] DROP CONSTRAINT [FK_SalesTerritoryHistory_SalesTerritory_TerritoryID];  
+ALTER TABLE [Sales].[ShoppingCartItem] DROP CONSTRAINT [FK_ShoppingCartItem_Product_ProductID];  
+ALTER TABLE [Sales].[SpecialOfferProduct] DROP CONSTRAINT [FK_SpecialOfferProduct_Product_ProductID];  
+ALTER TABLE [Sales].[SpecialOfferProduct] DROP CONSTRAINT [FK_SpecialOfferProduct_SpecialOffer_SpecialOfferID];  
+ALTER TABLE [Person].[StateProvince] DROP CONSTRAINT [FK_StateProvince_CountryRegion_CountryRegionCode];  
+ALTER TABLE [Person].[StateProvince] DROP CONSTRAINT [FK_StateProvince_SalesTerritory_TerritoryID];  
+ALTER TABLE [Sales].[Store] DROP CONSTRAINT [FK_Store_BusinessEntity_BusinessEntityID];  
+ALTER TABLE [Sales].[Store] DROP CONSTRAINT [FK_Store_SalesPerson_SalesPersonID];  
+ALTER TABLE [Production].[TransactionHistory] DROP CONSTRAINT [FK_TransactionHistory_Product_ProductID];  
+ALTER TABLE [Purchasing].[Vendor] DROP CONSTRAINT [FK_Vendor_BusinessEntity_BusinessEntityID];  
+ALTER TABLE [Production].[WorkOrder] DROP CONSTRAINT [FK_WorkOrder_Product_ProductID];  
+ALTER TABLE [Production].[WorkOrder] DROP CONSTRAINT [FK_WorkOrder_ScrapReason_ScrapReasonID];  
+ALTER TABLE [Production].[WorkOrderRouting] DROP CONSTRAINT [FK_WorkOrderRouting_Location_LocationID];  
+ALTER TABLE [Production].[WorkOrderRouting] DROP CONSTRAINT [FK_WorkOrderRouting_WorkOrder_WorkOrderID];
+
+Dropped Primary Keys:
+
+ALTER TABLE [Sales].[SalesPerson] DROP CONSTRAINT [PK_SalesPerson_BusinessEntityID];  
+ALTER TABLE [Sales].[SalesPersonQuotaHistory] DROP CONSTRAINT [PK_SalesPersonQuotaHistory_BusinessEntityID_QuotaDate];  
+ALTER TABLE [Sales].[SalesReason] DROP CONSTRAINT [PK_SalesReason_SalesReasonID];  
+ALTER TABLE [Sales].[SalesTaxRate] DROP CONSTRAINT [PK_SalesTaxRate_SalesTaxRateID];  
+ALTER TABLE [Sales].[SalesTerritory] DROP CONSTRAINT [PK_SalesTerritory_TerritoryID];  
+ALTER TABLE [Sales].[SalesTerritoryHistory] DROP CONSTRAINT [PK_SalesTerritoryHistory_BusinessEntityID_StartDate_TerritoryID];  
+ALTER TABLE [Production].[ScrapReason] DROP CONSTRAINT [PK_ScrapReason_ScrapReasonID];  
+ALTER TABLE [HumanResources].[Shift] DROP CONSTRAINT [PK_Shift_ShiftID];  
+ALTER TABLE [Purchasing].[ShipMethod] DROP CONSTRAINT [PK_ShipMethod_ShipMethodID];  
+ALTER TABLE [Sales].[ShoppingCartItem] DROP CONSTRAINT [PK_ShoppingCartItem_ShoppingCartItemID];  
+ALTER TABLE [Sales].[SpecialOffer] DROP CONSTRAINT [PK_SpecialOffer_SpecialOfferID];  
+ALTER TABLE [Sales].[SpecialOfferProduct] DROP CONSTRAINT [PK_SpecialOfferProduct_SpecialOfferID_ProductID];  
+ALTER TABLE [Person].[StateProvince] DROP CONSTRAINT [PK_StateProvince_StateProvinceID];  
+ALTER TABLE [Sales].[Store] DROP CONSTRAINT [PK_Store_BusinessEntityID];  
+ALTER TABLE [Production].[TransactionHistory] DROP CONSTRAINT [PK_TransactionHistory_TransactionID];  
+ALTER TABLE [Production].[TransactionHistoryArchive] DROP CONSTRAINT [PK_TransactionHistoryArchive_TransactionID];  
+ALTER TABLE [Production].[UnitMeasure] DROP CONSTRAINT [PK_UnitMeasure_UnitMeasureCode];  
+ALTER TABLE [Purchasing].[Vendor] DROP CONSTRAINT [PK_Vendor_BusinessEntityID];  
+ALTER TABLE [Production].[WorkOrder] DROP CONSTRAINT [PK_WorkOrder_WorkOrderID];  
+ALTER TABLE [Production].[WorkOrderRouting] DROP CONSTRAINT [PK_WorkOrderRouting_WorkOrderID_ProductID_OperationSequence];  
+ALTER TABLE [dbo].[ErrorLog] DROP CONSTRAINT [PK_ErrorLog_ErrorLogID];  
+ALTER TABLE [Person].[Address] DROP CONSTRAINT [PK_Address_AddressID];  
+ALTER TABLE [Person].[AddressType] DROP CONSTRAINT [PK_AddressType_AddressTypeID];  
+ALTER TABLE [dbo].[AWBuildVersion] DROP CONSTRAINT [PK_AWBuildVersion_SystemInformationID];  
+ALTER TABLE [Production].[BillOfMaterials] DROP CONSTRAINT [PK_BillOfMaterials_BillOfMaterialsID];  
+ALTER TABLE [Person].[BusinessEntity] DROP CONSTRAINT [PK_BusinessEntity_BusinessEntityID];  
+ALTER TABLE [Person].[BusinessEntityAddress] DROP CONSTRAINT [PK_BusinessEntityAddress_BusinessEntityID_AddressID_AddressTypeID];  
+ALTER TABLE [Person].[BusinessEntityContact] DROP CONSTRAINT [PK_BusinessEntityContact_BusinessEntityID_PersonID_ContactTypeID];  
+ALTER TABLE [Person].[ContactType] DROP CONSTRAINT [PK_ContactType_ContactTypeID];  
+ALTER TABLE [Sales].[CountryRegionCurrency] DROP CONSTRAINT [PK_CountryRegionCurrency_CountryRegionCode_CurrencyCode];  
+ALTER TABLE [Person].[CountryRegion] DROP CONSTRAINT [PK_CountryRegion_CountryRegionCode];  
+ALTER TABLE [Sales].[CreditCard] DROP CONSTRAINT [PK_CreditCard_CreditCardID];  
+ALTER TABLE [Production].[Culture] DROP CONSTRAINT [PK_Culture_CultureID];  
+ALTER TABLE [Sales].[Currency] DROP CONSTRAINT [PK_Currency_CurrencyCode];  
+ALTER TABLE [Sales].[CurrencyRate] DROP CONSTRAINT [PK_CurrencyRate_CurrencyRateID];  
+ALTER TABLE [Sales].[Customer] DROP CONSTRAINT [PK_Customer_CustomerID];  
+ALTER TABLE [dbo].[DatabaseLog] DROP CONSTRAINT [PK_DatabaseLog_DatabaseLogID];  
+ALTER TABLE [HumanResources].[Department] DROP CONSTRAINT [PK_Department_DepartmentID];  
+ALTER TABLE [Production].[Document] DROP CONSTRAINT [PK_Document_DocumentNode];  
+ALTER TABLE [Person].[EmailAddress] DROP CONSTRAINT [PK_EmailAddress_BusinessEntityID_EmailAddressID];  
+ALTER TABLE [HumanResources].[Employee] DROP CONSTRAINT [PK_Employee_BusinessEntityID];  
+ALTER TABLE [HumanResources].[EmployeeDepartmentHistory] DROP CONSTRAINT [PK_EmployeeDepartmentHistory_BusinessEntityID_StartDate_DepartmentID];  
+ALTER TABLE [HumanResources].[EmployeePayHistory] DROP CONSTRAINT [PK_EmployeePayHistory_BusinessEntityID_RateChangeDate];  
+ALTER TABLE [Production].[Illustration] DROP CONSTRAINT [PK_Illustration_IllustrationID];  
+ALTER TABLE [HumanResources].[JobCandidate] DROP CONSTRAINT [PK_JobCandidate_JobCandidateID];  
+ALTER TABLE [Production].[Location] DROP CONSTRAINT [PK_Location_LocationID];  
+ALTER TABLE [Person].[Password] DROP CONSTRAINT [PK_Password_BusinessEntityID];  
+ALTER TABLE [Person].[Person] DROP CONSTRAINT [PK_Person_BusinessEntityID];  
+ALTER TABLE [Sales].[PersonCreditCard] DROP CONSTRAINT [PK_PersonCreditCard_BusinessEntityID_CreditCardID];  
+ALTER TABLE [Person].[PersonPhone] DROP CONSTRAINT [PK_PersonPhone_BusinessEntityID_PhoneNumber_PhoneNumberTypeID];  
+ALTER TABLE [Person].[PhoneNumberType] DROP CONSTRAINT [PK_PhoneNumberType_PhoneNumberTypeID];  
+ALTER TABLE [Production].[Product] DROP CONSTRAINT [PK_Product_ProductID];  
+ALTER TABLE [Production].[ProductCategory] DROP CONSTRAINT [PK_ProductCategory_ProductCategoryID];  
+ALTER TABLE [Production].[ProductCostHistory] DROP CONSTRAINT [PK_ProductCostHistory_ProductID_StartDate];  
+ALTER TABLE [Production].[ProductDescription] DROP CONSTRAINT [PK_ProductDescription_ProductDescriptionID];  
+ALTER TABLE [Production].[ProductDocument] DROP CONSTRAINT [PK_ProductDocument_ProductID_DocumentNode];  
+ALTER TABLE [Production].[ProductInventory] DROP CONSTRAINT [PK_ProductInventory_ProductID_LocationID];  
+ALTER TABLE [Production].[ProductListPriceHistory] DROP CONSTRAINT [PK_ProductListPriceHistory_ProductID_StartDate];  
+ALTER TABLE [Production].[ProductModel] DROP CONSTRAINT [PK_ProductModel_ProductModelID];  
+ALTER TABLE [Production].[ProductModelIllustration] DROP CONSTRAINT [PK_ProductModelIllustration_ProductModelID_IllustrationID];  
+ALTER TABLE [Production].[ProductModelProductDescriptionCulture] DROP CONSTRAINT [PK_ProductModelProductDescriptionCulture_ProductModelID_ProductDescriptionID_CultureID];  
+ALTER TABLE [Production].[ProductPhoto] DROP CONSTRAINT [PK_ProductPhoto_ProductPhotoID];  
+ALTER TABLE [Production].[ProductProductPhoto] DROP CONSTRAINT [PK_ProductProductPhoto_ProductID_ProductPhotoID];  
+ALTER TABLE [Production].[ProductReview] DROP CONSTRAINT [PK_ProductReview_ProductReviewID];  
+ALTER TABLE [Production].[ProductSubcategory] DROP CONSTRAINT [PK_ProductSubcategory_ProductSubcategoryID];  
+ALTER TABLE [Purchasing].[ProductVendor] DROP CONSTRAINT [PK_ProductVendor_ProductID_BusinessEntityID];  
+ALTER TABLE [Purchasing].[PurchaseOrderDetail] DROP CONSTRAINT [PK_PurchaseOrderDetail_PurchaseOrderID_PurchaseOrderDetailID];  
+ALTER TABLE [Purchasing].[PurchaseOrderHeader] DROP CONSTRAINT [PK_PurchaseOrderHeader_PurchaseOrderID];  
+ALTER TABLE [Sales].[SalesOrderDetail] DROP CONSTRAINT [PK_SalesOrderDetail_SalesOrderID_SalesOrderDetailID];  
+ALTER TABLE [Sales].[SalesOrderHeader] DROP CONSTRAINT [PK_SalesOrderHeader_SalesOrderID];  
+ALTER TABLE [Sales].[SalesOrderHeaderSalesReason] DROP CONSTRAINT [PK_SalesOrderHeaderSalesReason_SalesOrderID_SalesReasonID];  
+
+Dropped Indexes:
+
+DROP INDEX [AK_SalesTaxRate_rowguid] ON [Sales].[SalesTaxRate];  
+DROP INDEX [AK_SalesTaxRate_StateProvinceID_TaxType] ON [Sales].[SalesTaxRate];  
+DROP INDEX [PK_SalesTaxRate_SalesTaxRateID] ON [Sales].[SalesTaxRate];  
+DROP INDEX [PK_PersonCreditCard_BusinessEntityID_CreditCardID] ON [Sales].[PersonCreditCard];  
+DROP INDEX [IX_PersonPhone_PhoneNumber] ON [Person].[PersonPhone];  
+DROP INDEX [PK_PersonPhone_BusinessEntityID_PhoneNumber_PhoneNumberTypeID] ON [Person].[PersonPhone];  
+DROP INDEX [AK_SalesTerritory_rowguid] ON [Sales].[SalesTerritory];  
+DROP INDEX [AK_SalesTerritory_Name] ON [Sales].[SalesTerritory];  
+DROP INDEX [PK_SalesTerritory_TerritoryID] ON [Sales].[SalesTerritory];  
+DROP INDEX [PK_PhoneNumberType_PhoneNumberTypeID] ON [Person].[PhoneNumberType];  
+DROP INDEX [AK_Product_rowguid] ON [Production].[Product];  
+DROP INDEX [AK_Product_Name] ON [Production].[Product];  
+DROP INDEX [AK_Product_ProductNumber] ON [Production].[Product];  
+DROP INDEX [PK_Product_ProductID] ON [Production].[Product];  
+DROP INDEX [IX_vProductAndDescription] ON [Production].[vProductAndDescription];  
+DROP INDEX [AK_SalesTerritoryHistory_rowguid] ON [Sales].[SalesTerritoryHistory];  
+DROP INDEX [PK_SalesTerritoryHistory_BusinessEntityID_StartDate_TerritoryID] ON [Sales].[SalesTerritoryHistory];  
+DROP INDEX [IX_vStateProvinceCountryRegion] ON [Person].[vStateProvinceCountryRegion];  
+DROP INDEX [AK_ScrapReason_Name] ON [Production].[ScrapReason];  
+DROP INDEX [PK_ScrapReason_ScrapReasonID] ON [Production].[ScrapReason];  
+DROP INDEX [AK_Shift_StartTime_EndTime] ON [HumanResources].[Shift];  
+DROP INDEX [AK_Shift_Name] ON [HumanResources].[Shift];  
+DROP INDEX [PK_Shift_ShiftID] ON [HumanResources].[Shift];  
+DROP INDEX [AK_ProductCategory_rowguid] ON [Production].[ProductCategory];  
+DROP INDEX [AK_ProductCategory_Name] ON [Production].[ProductCategory];  
+DROP INDEX [PK_ProductCategory_ProductCategoryID] ON [Production].[ProductCategory];  
+DROP INDEX [AK_ShipMethod_rowguid] ON [Purchasing].[ShipMethod];  
+DROP INDEX [AK_ShipMethod_Name] ON [Purchasing].[ShipMethod];  
+DROP INDEX [PK_ShipMethod_ShipMethodID] ON [Purchasing].[ShipMethod];  
+DROP INDEX [PK_ProductCostHistory_ProductID_StartDate] ON [Production].[ProductCostHistory];  
+DROP INDEX [AK_ProductDescription_rowguid] ON [Production].[ProductDescription];  
+DROP INDEX [PK_ProductDescription_ProductDescriptionID] ON [Production].[ProductDescription];  
+DROP INDEX [IX_ShoppingCartItem_ShoppingCartID_ProductID] ON [Sales].[ShoppingCartItem];  
+DROP INDEX [PK_ShoppingCartItem_ShoppingCartItemID] ON [Sales].[ShoppingCartItem];  
+DROP INDEX [PK_ProductDocument_ProductID_DocumentNode] ON [Production].[ProductDocument];  
+DROP INDEX [PK_DatabaseLog_DatabaseLogID] ON [dbo].[DatabaseLog];  
+DROP INDEX [PK_ProductInventory_ProductID_LocationID] ON [Production].[ProductInventory];  
+DROP INDEX [AK_SpecialOffer_rowguid] ON [Sales].[SpecialOffer];  
+DROP INDEX [PK_SpecialOffer_SpecialOfferID] ON [Sales].[SpecialOffer];  
+DROP INDEX [PK_ErrorLog_ErrorLogID] ON [dbo].[ErrorLog];  
+DROP INDEX [PK_ProductListPriceHistory_ProductID_StartDate] ON [Production].[ProductListPriceHistory];  
+DROP INDEX [IX_Address_StateProvinceID] ON [Person].[Address];  
+DROP INDEX [IX_Address_AddressLine1_AddressLine2_City_StateProvinceID_PostalCode] ON [Person].[Address];  
+DROP INDEX [AK_Address_rowguid] ON [Person].[Address];  
+DROP INDEX [PK_Address_AddressID] ON [Person].[Address];  
+DROP INDEX [IX_SpecialOfferProduct_ProductID] ON [Sales].[SpecialOfferProduct];  
+DROP INDEX [AK_SpecialOfferProduct_rowguid] ON [Sales].[SpecialOfferProduct];  
+DROP INDEX [PK_SpecialOfferProduct_SpecialOfferID_ProductID] ON [Sales].[SpecialOfferProduct];  
+DROP INDEX [PXML_ProductModel_Instructions] ON [Production].[ProductModel];  
+DROP INDEX [PXML_ProductModel_CatalogDescription] ON [Production].[ProductModel];  
+DROP INDEX [AK_ProductModel_rowguid] ON [Production].[ProductModel];  
+DROP INDEX [AK_ProductModel_Name] ON [Production].[ProductModel];  
+DROP INDEX [PK_ProductModel_ProductModelID] ON [Production].[ProductModel];  
+DROP INDEX [AK_AddressType_Name] ON [Person].[AddressType];  
+DROP INDEX [AK_AddressType_rowguid] ON [Person].[AddressType];  
+DROP INDEX [PK_AddressType_AddressTypeID] ON [Person].[AddressType];  
+DROP INDEX [AK_StateProvince_rowguid] ON [Person].[StateProvince];  
+DROP INDEX [AK_StateProvince_StateProvinceCode_CountryRegionCode] ON [Person].[StateProvince];  
+DROP INDEX [AK_StateProvince_Name] ON [Person].[StateProvince];  
+DROP INDEX [PK_StateProvince_StateProvinceID] ON [Person].[StateProvince];  
+DROP INDEX [PK_ProductModelIllustration_ProductModelID_IllustrationID] ON [Production].[ProductModelIllustration];  
+DROP INDEX [PK_AWBuildVersion_SystemInformationID] ON [dbo].[AWBuildVersion];  
+DROP INDEX [PK_ProductModelProductDescriptionCulture_ProductModelID_ProductDescriptionID_CultureID] ON [Production].[ProductModelProductDescriptionCulture];  
+DROP INDEX [IX_BillOfMaterials_UnitMeasureCode] ON [Production].[BillOfMaterials];  
+DROP INDEX [PK_BillOfMaterials_BillOfMaterialsID] ON [Production].[BillOfMaterials];  
+DROP INDEX [AK_BillOfMaterials_ProductAssemblyID_ComponentID_StartDate] ON [Production].[BillOfMaterials];  
+DROP INDEX [PXML_Store_Demographics] ON [Sales].[Store];  
+DROP INDEX [IX_Store_SalesPersonID] ON [Sales].[Store];  
+DROP INDEX [AK_Store_rowguid] ON [Sales].[Store];  
+DROP INDEX [PK_Store_BusinessEntityID] ON [Sales].[Store];  
+DROP INDEX [PK_ProductPhoto_ProductPhotoID] ON [Production].[ProductPhoto];  
+DROP INDEX [PK_ProductProductPhoto_ProductID_ProductPhotoID] ON [Production].[ProductProductPhoto];  
+DROP INDEX [IX_TransactionHistory_ReferenceOrderID_ReferenceOrderLineID] ON [Production].[TransactionHistory];  
+DROP INDEX [IX_TransactionHistory_ProductID] ON [Production].[TransactionHistory];  
+DROP INDEX [PK_TransactionHistory_TransactionID] ON [Production].[TransactionHistory];  
+DROP INDEX [IX_ProductReview_ProductID_Name] ON [Production].[ProductReview];  
+DROP INDEX [PK_ProductReview_ProductReviewID] ON [Production].[ProductReview];  
+DROP INDEX [AK_BusinessEntity_rowguid] ON [Person].[BusinessEntity];  
+DROP INDEX [PK_BusinessEntity_BusinessEntityID] ON [Person].[BusinessEntity];  
+DROP INDEX [IX_TransactionHistoryArchive_ReferenceOrderID_ReferenceOrderLineID] ON [Production].[TransactionHistoryArchive];  
+DROP INDEX [IX_TransactionHistoryArchive_ProductID] ON [Production].[TransactionHistoryArchive];  
+DROP INDEX [PK_TransactionHistoryArchive_TransactionID] ON [Production].[TransactionHistoryArchive];  
+DROP INDEX [AK_ProductSubcategory_rowguid] ON [Production].[ProductSubcategory];  
+DROP INDEX [AK_ProductSubcategory_Name] ON [Production].[ProductSubcategory];  
+DROP INDEX [PK_ProductSubcategory_ProductSubcategoryID] ON [Production].[ProductSubcategory];  
+DROP INDEX [IX_BusinessEntityAddress_AddressTypeID] ON [Person].[BusinessEntityAddress];  
+DROP INDEX [IX_BusinessEntityAddress_AddressID] ON [Person].[BusinessEntityAddress];  
+DROP INDEX [AK_BusinessEntityAddress_rowguid] ON [Person].[BusinessEntityAddress];  
+DROP INDEX [PK_BusinessEntityAddress_BusinessEntityID_AddressID_AddressTypeID] ON [Person].[BusinessEntityAddress];  
+DROP INDEX [IX_ProductVendor_BusinessEntityID] ON [Purchasing].[ProductVendor];  
+DROP INDEX [IX_ProductVendor_UnitMeasureCode] ON [Purchasing].[ProductVendor];  
+DROP INDEX [PK_ProductVendor_ProductID_BusinessEntityID] ON [Purchasing].[ProductVendor];  
+DROP INDEX [IX_BusinessEntityContact_ContactTypeID] ON [Person].[BusinessEntityContact];  
+DROP INDEX [IX_BusinessEntityContact_PersonID] ON [Person].[BusinessEntityContact];  
+DROP INDEX [AK_BusinessEntityContact_rowguid] ON [Person].[BusinessEntityContact];  
+DROP INDEX [PK_BusinessEntityContact_BusinessEntityID_PersonID_ContactTypeID] ON [Person].[BusinessEntityContact];  
+DROP INDEX [AK_UnitMeasure_Name] ON [Production].[UnitMeasure];  
+DROP INDEX [PK_UnitMeasure_UnitMeasureCode] ON [Production].[UnitMeasure];  
+DROP INDEX [AK_Vendor_AccountNumber] ON [Purchasing].[Vendor];  
+DROP INDEX [PK_Vendor_BusinessEntityID] ON [Purchasing].[Vendor];  
+DROP INDEX [AK_ContactType_Name] ON [Person].[ContactType];  
+DROP INDEX [PK_ContactType_ContactTypeID] ON [Person].[ContactType];  
+DROP INDEX [IX_CountryRegionCurrency_CurrencyCode] ON [Sales].[CountryRegionCurrency];  
+DROP INDEX [PK_CountryRegionCurrency_CountryRegionCode_CurrencyCode] ON [Sales].[CountryRegionCurrency];  
+DROP INDEX [AK_CountryRegion_Name] ON [Person].[CountryRegion];  
+DROP INDEX [PK_CountryRegion_CountryRegionCode] ON [Person].[CountryRegion];  
+DROP INDEX [IX_WorkOrder_ProductID] ON [Production].[WorkOrder];  
+DROP INDEX [IX_WorkOrder_ScrapReasonID] ON [Production].[WorkOrder];  
+DROP INDEX [PK_WorkOrder_WorkOrderID] ON [Production].[WorkOrder];  
+DROP INDEX [IX_PurchaseOrderDetail_ProductID] ON [Purchasing].[PurchaseOrderDetail];  
+DROP INDEX [PK_PurchaseOrderDetail_PurchaseOrderID_PurchaseOrderDetailID] ON [Purchasing].[PurchaseOrderDetail];  
+DROP INDEX [AK_CreditCard_CardNumber] ON [Sales].[CreditCard];  
+DROP INDEX [PK_CreditCard_CreditCardID] ON [Sales].[CreditCard];  
+DROP INDEX [AK_Culture_Name] ON [Production].[Culture];  
+DROP INDEX [PK_Culture_CultureID] ON [Production].[Culture];  
+DROP INDEX [IX_WorkOrderRouting_ProductID] ON [Production].[WorkOrderRouting];  
+DROP INDEX [PK_WorkOrderRouting_WorkOrderID_ProductID_OperationSequence] ON [Production].[WorkOrderRouting];  
+DROP INDEX [AK_Currency_Name] ON [Sales].[Currency];  
+DROP INDEX [PK_Currency_CurrencyCode] ON [Sales].[Currency];  
+DROP INDEX [IX_PurchaseOrderHeader_EmployeeID] ON [Purchasing].[PurchaseOrderHeader];  
+DROP INDEX [IX_PurchaseOrderHeader_VendorID] ON [Purchasing].[PurchaseOrderHeader];  
+DROP INDEX [PK_PurchaseOrderHeader_PurchaseOrderID] ON [Purchasing].[PurchaseOrderHeader];  
+DROP INDEX [AK_CurrencyRate_CurrencyRateDate_FromCurrencyCode_ToCurrencyCode] ON [Sales].[CurrencyRate];  
+DROP INDEX [PK_CurrencyRate_CurrencyRateID] ON [Sales].[CurrencyRate];  
+DROP INDEX [IX_Customer_TerritoryID] ON [Sales].[Customer];  
+DROP INDEX [AK_Customer_AccountNumber] ON [Sales].[Customer];  
+DROP INDEX [AK_Customer_rowguid] ON [Sales].[Customer];  
+DROP INDEX [PK_Customer_CustomerID] ON [Sales].[Customer];  
+DROP INDEX [AK_Department_Name] ON [HumanResources].[Department];  
+DROP INDEX [PK_Department_DepartmentID] ON [HumanResources].[Department];  
+DROP INDEX [IX_Document_FileName_Revision] ON [Production].[Document];  
+DROP INDEX [AK_Document_rowguid] ON [Production].[Document];  
+DROP INDEX [AK_Document_DocumentLevel_DocumentNode] ON [Production].[Document];  
+DROP INDEX [UQ__Document__F73921F744672977] ON [Production].[Document];  
+DROP INDEX [PK_Document_DocumentNode] ON [Production].[Document];  
+DROP INDEX [IX_SalesOrderDetail_ProductID] ON [Sales].[SalesOrderDetail];  
+DROP INDEX [AK_SalesOrderDetail_rowguid] ON [Sales].[SalesOrderDetail];  
+DROP INDEX [PK_SalesOrderDetail_SalesOrderID_SalesOrderDetailID] ON [Sales].[SalesOrderDetail];  
+DROP INDEX [IX_EmailAddress_EmailAddress] ON [Person].[EmailAddress];  
+DROP INDEX [PK_EmailAddress_BusinessEntityID_EmailAddressID] ON [Person].[EmailAddress];  
+DROP INDEX [AK_Employee_rowguid] ON [HumanResources].[Employee];  
+DROP INDEX [AK_Employee_NationalIDNumber] ON [HumanResources].[Employee];  
+DROP INDEX [AK_Employee_LoginID] ON [HumanResources].[Employee];  
+DROP INDEX [IX_Employee_OrganizationLevel_OrganizationNode] ON [HumanResources].[Employee];  
+DROP INDEX [IX_Employee_OrganizationNode] ON [HumanResources].[Employee];  
+DROP INDEX [PK_Employee_BusinessEntityID] ON [HumanResources].[Employee];  
+DROP INDEX [IX_SalesOrderHeader_SalesPersonID] ON [Sales].[SalesOrderHeader];  
+DROP INDEX [IX_SalesOrderHeader_CustomerID] ON [Sales].[SalesOrderHeader];  
+DROP INDEX [AK_SalesOrderHeader_SalesOrderNumber] ON [Sales].[SalesOrderHeader];  
+DROP INDEX [AK_SalesOrderHeader_rowguid] ON [Sales].[SalesOrderHeader];  
+DROP INDEX [PK_SalesOrderHeader_SalesOrderID] ON [Sales].[SalesOrderHeader];  
+DROP INDEX [IX_EmployeeDepartmentHistory_ShiftID] ON [HumanResources].[EmployeeDepartmentHistory];  
+DROP INDEX [IX_EmployeeDepartmentHistory_DepartmentID] ON [HumanResources].[EmployeeDepartmentHistory];  
+DROP INDEX [PK_EmployeeDepartmentHistory_BusinessEntityID_StartDate_DepartmentID] ON [HumanResources].[EmployeeDepartmentHistory];  
+DROP INDEX [PK_EmployeePayHistory_BusinessEntityID_RateChangeDate] ON [HumanResources].[EmployeePayHistory];  
+DROP INDEX [PK_SalesOrderHeaderSalesReason_SalesOrderID_SalesReasonID] ON [Sales].[SalesOrderHeaderSalesReason];  
+DROP INDEX [AK_SalesPerson_rowguid] ON [Sales].[SalesPerson];  
+DROP INDEX [PK_SalesPerson_BusinessEntityID] ON [Sales].[SalesPerson];  
+DROP INDEX [PK_Illustration_IllustrationID] ON [Production].[Illustration];  
+DROP INDEX [IX_JobCandidate_BusinessEntityID] ON [HumanResources].[JobCandidate];  
+DROP INDEX [PK_JobCandidate_JobCandidateID] ON [HumanResources].[JobCandidate];  
+DROP INDEX [AK_Location_Name] ON [Production].[Location];  
+DROP INDEX [PK_Location_LocationID] ON [Production].[Location];  
+DROP INDEX [PK_Password_BusinessEntityID] ON [Person].[Password];  
+DROP INDEX [AK_SalesPersonQuotaHistory_rowguid] ON [Sales].[SalesPersonQuotaHistory];  
+DROP INDEX [PK_SalesPersonQuotaHistory_BusinessEntityID_QuotaDate] ON [Sales].[SalesPersonQuotaHistory];  
+DROP INDEX [XMLVALUE_Person_Demographics] ON [Person].[Person];  
+DROP INDEX [XMLPROPERTY_Person_Demographics] ON [Person].[Person];  
+DROP INDEX [XMLPATH_Person_Demographics] ON [Person].[Person];  
+DROP INDEX [PXML_Person_Demographics] ON [Person].[Person];  
+DROP INDEX [PXML_Person_AddContact] ON [Person].[Person];  
+DROP INDEX [AK_Person_rowguid] ON [Person].[Person];  
+DROP INDEX [IX_Person_LastName_FirstName_MiddleName] ON [Person].[Person];  
+DROP INDEX [PK_Person_BusinessEntityID] ON [Person].[Person];  
+DROP INDEX [PK_SalesReason_SalesReasonID] ON [Sales].[SalesReason];  

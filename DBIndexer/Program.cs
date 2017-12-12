@@ -5,6 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using MTUtilities;
 using System.IO;
+using XsPDF.Charting;
+using XsPDF.Pdf;
+using XsPDF.Fonts;
 
 namespace DBIndexer
 {
@@ -118,8 +121,8 @@ namespace DBIndexer
                         SQLQueryStmt.PrintQueryOccurenceStats();
 
 
-                        // Execute the workload queries one by one and benchmark them
-                        SQLQueryStmt.BenchmarkWorload(@"DESKTOP-R4E3L7J\LEARNINGOWL", "", @"sa", @"Jayant123*", @"AdventureWorks2016");
+                        // Execute the workload queries one by one and benchmark them 
+                        SQLQueryStmt.BenchmarkWorload(ServerName, DBFilePath, UserName, Password, DBName, true);
 
                         // Start ranking now based on the collected data.
                         ScoreAnalysis ScoreMaster = new ScoreAnalysis(); ;
@@ -136,7 +139,7 @@ namespace DBIndexer
                                 ScoreMaster = new ScoreAnalysis();
 
                                 // Update the table data for each column.
-                                ScoreMaster.TableName = table.Value.name;
+                                ScoreMaster.TableName =  table.Value.name;
                                 ScoreMaster.TableScore = table.Value.Score;
 
                                 // update the column scoring data for each column.
@@ -155,7 +158,8 @@ namespace DBIndexer
 
                         ConsoleTable ScoreBoardOutput = new ConsoleTable("Table_Name", "Table_Score", "Column_Name", "Column_Score", "HashScore", "Binary Score");
                         ScoreBoard = ScoreBoard.OrderByDescending(x => x.TableScore).ThenByDescending(x => x.ColumnScore).ToList<ScoreAnalysis>();
-
+                        
+                        
                         foreach (ScoreAnalysis Score in ScoreBoard)
                         {
                             ScoreBoardOutput.AddRow(Score.TableName, Score.TableScore, Score.ColumnName, Score.ColumnScore, Score.ColumnHashScore, Score.ColumnBinaryScore);
@@ -165,6 +169,7 @@ namespace DBIndexer
                         Console.WriteLine("######################  Printing final scores for each table and column by the order of highest scores first. ####################");
                         
                         ScoreBoardOutput.Write(Format.MarkDown);
+                        //Utilities.ExportToPDF(ScoreBoardOutput,"TableAndColumnScores");
                         Console.WriteLine();
 
 
@@ -308,18 +313,98 @@ namespace DBIndexer
                         // Sort the output by the tablenames.
                         Output = Output.OrderBy(table => table.Table_Name).ToList<OutputUtil>();
 
+                        //Store all the index creation queries to be executed in this array.
+                        List<string> IndexCreationQueries = new List<string>();
+
+                        
                         // Add the final output after sorting table wise to the Console Printer.
                         foreach (OutputUtil item in Output)
                         {
                             ct.AddRow(item.Table_Name, item.Index_Columns, item.Index_type);
+
+                            
+                            // Create the indexes as suggested above.
+                            string[] columns = item.Index_Columns.Split(',');
+                            if (columns.Count() > 1)
+                            {
+                                string CreateText = "CREATE INDEX [Idx_" + item.Table_Name + "_" + item.Index_Columns.Replace(',','_') + "] ON [" + Utilities.DictTablesCatalog.First(x => x.Key == item.Table_Name).Value.Table_Schema_Name + "].[" + item.Table_Name + "] ([" + columns[0] + "] ASC)";
+                                for (int i = 1; i < columns.Length; i++)
+                                {
+                                    if (i == 1)
+                                    {
+                                        CreateText += "INCLUDE ([" + columns[i] + "]";
+                                    }
+                                    else
+                                    {
+                                        CreateText += ", [" + columns[i] + "]";
+                                    }
+                                }
+                                CreateText += ");";
+                                
+                                IndexCreationQueries.Add(CreateText);
+
+                            }
+                            else
+                            {
+                                IndexCreationQueries.Add("CREATE INDEX [Idx_"+ item.Table_Name + "_" + item.Index_Columns + "] ON [" + Utilities.DictTablesCatalog.First(x => x.Key == item.Table_Name).Value.Table_Schema_Name + "].[" + item.Table_Name + "] ([" + item.Index_Columns + "]);");
+                            }
+                            
+                            
+
                         }
                         ct.Write(Format.MarkDown);
                         Console.WriteLine();
-                        Console.WriteLine("Do you want the analysis in a PDF ?");
+
+                        // Create the indexes as per the suggestions
+                        Utilities.CreateIndexSuggestions(IndexCreationQueries, ServerName, DBFilePath, UserName, Password, DBName, true);
+
+                        #region Benchmark after Suggestions and capture the difference
+                        // Benchmark
+                        SQLQueryStmt.BenchmarkWorload(ServerName, DBFilePath, UserName, Password, DBName, false);
+
+                        List<string> DropIndexes = new List<string>();
+                        foreach (string item in IndexCreationQueries)
+                        {
+                            DropIndexes.Add(item.Replace("CREATE", "DROP").Substring(0, item.IndexOf('(') - 1).Replace('(', ';'));
+                        }
+                        // Drop the indexes created for benchmarking
+                        Utilities.CreateIndexSuggestions(DropIndexes, ServerName, DBFilePath, UserName, Password, DBName, false);
+
+                        // Print out the differences:
+                        ConsoleTable ResultsConsole = new ConsoleTable("QueryText","Occurences","IOCost_Before", "IOCost_After", "Execution_Time_Before", "Execution_Time_After", "Status", "Change Percentage");
+                        foreach (KeyValuePair<Guid, SQLQueryStmt> qry in Utilities.DictWorkloadQueries)
+                        {
+                            ResultsConsole.AddRow(
+                                qry.Value.QueryText.Replace(System.Environment.NewLine, " ").Substring(0, 35) + "...",
+                                qry.Value.NumOfOccurences,
+                                qry.Value.TotalIOCost_Before * qry.Value.NumOfOccurences
+                               , qry.Value.TotalIOCost_After * qry.Value.NumOfOccurences
+                               , qry.Value.OriginalQueryExecutionTime * qry.Value.NumOfOccurences
+                               , qry.Value.IndexedQueryExecutionTime * qry.Value.NumOfOccurences
+                               , (((qry.Value.LogicalReads_After + qry.Value.PhysicalReads_After) < (qry.Value.LogicalReads_Before + qry.Value.PhysicalReads_Before)) ? "Improved" : (((qry.Value.LogicalReads_After + qry.Value.PhysicalReads_After) > (qry.Value.LogicalReads_Before + qry.Value.PhysicalReads_Before)) ? "Degraded" : "NoChange"))
+                               , (qry.Value.TotalIOCost_Before == 0)? 0 : ( ( (double) (Math.Abs( (double)qry.Value.TotalIOCost_Before - (double)qry.Value.TotalIOCost_After) / (double)qry.Value.TotalIOCost_Before) * 100.00 )));
+
+                        }
+                        ResultsConsole.Write(Format.MarkDown);
+                        Console.WriteLine();
+                        #endregion
+
+                        // check if statistics need to be updated.
+                        // Give suggestions about which queries can be written in a better way.
+
+
+                        Console.ReadKey();
+                        //Console.WriteLine("Do you want the analysis in a PDF ?");
                         if (Console.ReadLine() == "Yes")
                         {
                             // write the code to output it to the pdf.
                             string filepath = "";
+
+                            #region PDF Export
+                            //Utilities.ExportToPDF(ct,"PrintAllGraphs");
+
+                            #endregion  
+
                             Console.WriteLine("PDF created at location : {0}", filepath);
                             Console.WriteLine("Processing Complete.");
                             Console.ReadKey();

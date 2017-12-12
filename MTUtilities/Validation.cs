@@ -88,11 +88,18 @@ namespace MTUtilities
                     while (OutputReader.Read())
                     {
                         consoletable.AddRow(OutputReader[0], OutputReader[1], OutputReader[2]);
+                        DBTable tab = new DBTable();
+                        tab.Table_Schema_Name = OutputReader[1].ToString();
+                        tab.name = OutputReader[2].ToString();
+
+                        Utilities.DictTablesCatalog[tab.name] = tab;
+                        
                     }
 
                     OutputReader.Close();
 
                     consoletable.Write(Format.MarkDown);
+                    Utilities.ExportToPDF(consoletable, "PrintSchema");
                     Console.WriteLine();
 
                     GreenLights = true;

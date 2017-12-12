@@ -8,3 +8,4 @@ C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\obj\Debug\DBIndexer.pdb
 C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug\MTUtilities.dll
 C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug\MTUtilities.pdb
 C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug\gudusoft.gsqlparser.dll
+C:\Users\Learning_Owl\source\repos\DBIndexer\DBIndexer\bin\Debug\XsPDF.dll
